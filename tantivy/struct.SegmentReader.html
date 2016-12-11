@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `SegmentReader` struct in crate `tantivy`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, SegmentReader">
+
+    <title>tantivy::SegmentReader - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        <a href='../tantivy/index.html'><img src='http://fulmicoton.com/tantivy-logo/tantivy-logo.png' alt='logo' width='100'></a>
+        <p class='location'><a href='index.html'>tantivy</a></p><script>window.sidebarCurrent = {name: 'SegmentReader', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>tantivy</a>::<wbr><a class='struct' href=''>SegmentReader</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-205' class='srclink' href='../src/tantivy/src/core/segment_reader.rs.html#39-49' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct SegmentReader { /* fields omitted */ }</pre><div class='docblock'><p>Entry point to access all of the datastructures of the <code>Segment</code></p>
+
+<ul>
+<li>term dictionary</li>
+<li>postings</li>
+<li>store</li>
+<li>fast field readers</li>
+<li>field norm reader</li>
+</ul>
+
+<p>The segment reader has a very low memory footprint,
+as close to all of the memory data is mmapped.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class='struct' href='../tantivy/struct.SegmentReader.html' title='tantivy::SegmentReader'>SegmentReader</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-215' class='srclink' href='../src/tantivy/src/core/segment_reader.rs.html#51-240' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.max_doc' class='method'><span id='max_doc.v' class='invisible'><code>fn <a href='#method.max_doc' class='fnname'>max_doc</a>(&amp;self) -&gt; <a class='type' href='../tantivy/type.DocId.html' title='tantivy::DocId'>DocId</a></code></span></h4>
+<div class='docblock'><p>Returns the highest document id ever attributed in
+this segment + 1.
+Today, <code>tantivy</code> does not handle deletes, so it happens
+to also be the number of documents in the index.</p>
+</div><h4 id='method.num_docs' class='method'><span id='num_docs.v' class='invisible'><code>fn <a href='#method.num_docs' class='fnname'>num_docs</a>(&amp;self) -&gt; <a class='type' href='../tantivy/type.DocId.html' title='tantivy::DocId'>DocId</a></code></span></h4>
+<div class='docblock'><p>Returns the number of documents.
+Deleted documents are not counted.</p>
+
+<p>Today, <code>tantivy</code> does not handle deletes so max doc and
+num_docs are the same.</p>
+</div><h4 id='method.get_fast_field_reader' class='method'><span id='get_fast_field_reader.v' class='invisible'><code>fn <a href='#method.get_fast_field_reader' class='fnname'>get_fast_field_reader</a>(&amp;self, field: <a class='struct' href='../tantivy/schema/struct.Field.html' title='tantivy::schema::Field'>Field</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;U32FastFieldReader&gt;</code></span></h4>
+<div class='docblock'><p>Accessor to a segment&#39;s fast field reader given a field.</p>
+</div><h4 id='method.get_fieldnorms_reader' class='method'><span id='get_fieldnorms_reader.v' class='invisible'><code>fn <a href='#method.get_fieldnorms_reader' class='fnname'>get_fieldnorms_reader</a>(&amp;self, field: <a class='struct' href='../tantivy/schema/struct.Field.html' title='tantivy::schema::Field'>Field</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;U32FastFieldReader&gt;</code></span></h4>
+<div class='docblock'><p>Accessor to the segment&#39;s <code>Field norms</code>&#39;s reader.</p>
+
+<p>Field norms are the length (in tokens) of the fields.
+It is used in the computation of the <a href="https://fulmicoton.gitbooks.io/tantivy-doc/content/tfidf.html">TfIdf</a>.</p>
+
+<p>They are simply stored as a fast field, serialized in 
+the <code>.fieldnorm</code> file of the segment. </p>
+</div><h4 id='method.doc_freq' class='method'><span id='doc_freq.v' class='invisible'><code>fn <a href='#method.doc_freq' class='fnname'>doc_freq</a>(&amp;self, term: &amp;<a class='struct' href='../tantivy/struct.Term.html' title='tantivy::Term'>Term</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u32.html'>u32</a></code></span></h4>
+<div class='docblock'><p>Returns the number of documents containing the term.</p>
+</div><h4 id='method.get_store_reader' class='method'><span id='get_store_reader.v' class='invisible'><code>fn <a href='#method.get_store_reader' class='fnname'>get_store_reader</a>(&amp;self) -&gt; &amp;StoreReader</code></span></h4>
+<div class='docblock'><p>Accessor to the segment&#39;s <code>StoreReader</code>.</p>
+</div><h4 id='method.open' class='method'><span id='open.v' class='invisible'><code>fn <a href='#method.open' class='fnname'>open</a>(segment: <a class='struct' href='../tantivy/struct.Segment.html' title='tantivy::Segment'>Segment</a>) -&gt; <a class='type' href='../tantivy/type.Result.html' title='tantivy::Result'>Result</a>&lt;<a class='struct' href='../tantivy/struct.SegmentReader.html' title='tantivy::SegmentReader'>SegmentReader</a>&gt;</code></span></h4>
+<div class='docblock'><p>Open a new segment for reading.</p>
+</div><h4 id='method.term_infos' class='method'><span id='term_infos.v' class='invisible'><code>fn <a href='#method.term_infos' class='fnname'>term_infos</a>(&amp;self) -&gt; &amp;FstMap&lt;<a class='struct' href='../tantivy/postings/struct.TermInfo.html' title='tantivy::postings::TermInfo'>TermInfo</a>&gt;</code></span></h4>
+<div class='docblock'><p>Return the term dictionary datastructure.</p>
+</div><h4 id='method.doc' class='method'><span id='doc.v' class='invisible'><code>fn <a href='#method.doc' class='fnname'>doc</a>(&amp;self, doc_id: <a class='type' href='../tantivy/type.DocId.html' title='tantivy::DocId'>DocId</a>) -&gt; <a class='type' href='../tantivy/type.Result.html' title='tantivy::Result'>Result</a>&lt;<a class='struct' href='../tantivy/struct.Document.html' title='tantivy::Document'>Document</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns the document (or to be accurate, its stored field)
+bearing the given doc id.
+This method is slow and should seldom be called from
+within a collector.</p>
+</div><h4 id='method.read_postings' class='method'><span id='read_postings.v' class='invisible'><code>fn <a href='#method.read_postings' class='fnname'>read_postings</a>(&amp;self,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; term: &amp;<a class='struct' href='../tantivy/struct.Term.html' title='tantivy::Term'>Term</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; option: <a class='enum' href='../tantivy/enum.SegmentPostingsOption.html' title='tantivy::SegmentPostingsOption'>SegmentPostingsOption</a>)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../tantivy/postings/struct.SegmentPostings.html' title='tantivy::postings::SegmentPostings'>SegmentPostings</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns the segment postings associated with the term, and with the given option,
+or <code>None</code> if the term has never been encounterred and indexed. </p>
+
+<p>If the field was not indexed with the indexing options that cover 
+the requested options, the returned <code>SegmentPostings</code> the method does not fail
+and returns a <code>SegmentPostings</code> with as much information as possible.</p>
+
+<p>For instance, requesting <code>SegmentPostingsOption::FreqAndPositions</code> for a <code>TextIndexingOptions</code>
+that does not index position will return a <code>SegmentPostings</code> with <code>DocId</code>s and frequencies.</p>
+</div><h4 id='method.read_postings_all_info' class='method'><span id='read_postings_all_info.v' class='invisible'><code>fn <a href='#method.read_postings_all_info' class='fnname'>read_postings_all_info</a>(&amp;self, term: &amp;<a class='struct' href='../tantivy/struct.Term.html' title='tantivy::Term'>Term</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../tantivy/postings/struct.SegmentPostings.html' title='tantivy::postings::SegmentPostings'>SegmentPostings</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns the posting list associated with a term.</p>
+</div><h4 id='method.get_term_info' class='method'><span id='get_term_info.v' class='invisible'><code>fn <a href='#method.get_term_info' class='fnname'>get_term_info</a>(&amp;self, term: &amp;<a class='struct' href='../tantivy/struct.Term.html' title='tantivy::Term'>Term</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../tantivy/postings/struct.TermInfo.html' title='tantivy::postings::TermInfo'>TermInfo</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns the term info associated with the term.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../tantivy/struct.SegmentReader.html' title='tantivy::SegmentReader'>SegmentReader</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-277' class='srclink' href='../src/tantivy/src/core/segment_reader.rs.html#243-247' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "tantivy";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
