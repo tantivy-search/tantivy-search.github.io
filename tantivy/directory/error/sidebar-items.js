@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["FileError","Error that may occur when accessing a file (read, or delete)"],["OpenDirectoryError","Error that may occur when opening a directory"],["OpenWriteError","Error that may occur when starting to write in a file"]]});
