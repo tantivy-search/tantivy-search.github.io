@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+
+      @import url('https://fonts.googleapis.com/css?family=Merriweather|Montserrat|Noto+Serif|Roboto|Roboto+Slab');
+
+      .title h1 {
+        font-size: 60px !important;
+        color: white;
+        text-shadow: 1px 1px 10px #444;
+      }
+
+      .remark-slide-content {
+        color: #222;
+        font-size: 40px;
+        font-family: 'Noto+Serif';
+        background-color:  #e9ecf1;
+      }
+
+      h1, h2, h3 {
+
+        /* Merriweather|Noto+Serif|Roboto|Roboto+Slab
+        font-family: 'Merriweather';
+        font-family: 'Montserrat';
+        font-family: 'Noto Serif';
+        font-family: 'Roboto';
+        font-family: 'Roboto+Slab';
+        */
+
+        font-family: 'Noto Serif';
+        color: #444;
+        font-weight: normal;
+      }
+
+      .remark-slide-content h1 {
+        font-size: 70px;
+      }
+
+      div.title {
+          background-color:  #a3b7d3;
+      }
+
+      /*
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      */
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+    console.log("aa");
+    $.ajaxSetup({async:false});
+    $("#source").load("tantivy.md")
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>

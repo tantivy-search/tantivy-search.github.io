@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tantivy</title>
+    <meta charset="utf-8">
+    <style>
+
+      @import url('https://fonts.googleapis.com/css?family=Merriweather|Montserrat|Noto+Serif|Roboto|Roboto+Slab');
+
+      .title h1 {
+        text-align: right;
+        font-size: 70px !important;
+        color: white !important;
+        text-shadow: -2px 2px 6px #5983a9 !important;
+      }
+      .title h2 {
+        font-size: 27px;
+        color: #525262;
+        text-shadow: 0px 0px 10px #9b9b9b;
+      }
+
+      .remark-slide-content {
+        color: #222;
+        font-size: 28px;
+        font-family: 'Noto Serif';
+        background-color:  #e9ecf1;
+      }
+
+      h1, h2, h3 {
+        font-family: 'Noto Serif';
+        color: #444;
+        font-weight: normal;
+      }
+      
+      
+      
+      h2 {
+        font-size: 35px !important;
+      }
+      
+      h3 {
+        font-size: 30px !important;
+      }
+
+      .remark-slide-content h1 {
+        font-size: 45px;
+        font-family: 'Noto Serif';
+        color: #444;
+        font-weight: normal;
+      }
+      
+      .remark-slide-content {
+        font-size: 25px;
+      }
+
+      div.title {
+          background-color:  #a3b7d3;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+    </textarea>
+    <script src="remark-latest.min.js"></script>
+    <script src="jquery-3.3.1.min.js"></script>
+    <script>
+    $.ajaxSetup({async:false});
+    $("#source").load("tantivy.md")
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
