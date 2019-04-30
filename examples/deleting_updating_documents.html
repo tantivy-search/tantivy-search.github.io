@@ -45,10 +45,11 @@ its new version.</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-meta">#[macro_use]</span>
 <span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tantivy;
-<span class="hljs-keyword">use</span> tantivy::collector::TopCollector;
+<span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
+<span class="hljs-keyword">use</span> tantivy::query::TermQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::Index;
-<span class="hljs-keyword">use</span> tantivy::query::TermQuery;</pre></div></div>
+<span class="hljs-keyword">use</span> tantivy::IndexReader;</pre></div></div>
             
         </li>
         
@@ -65,8 +66,11 @@ It will be helpful to check our work.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">extract_doc_given_isbn</span></span>(index: &amp;Index, isbn_term: &amp;Term) -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;<span class="hljs-built_in">Option</span>&lt;Document&gt;&gt; {
-    <span class="hljs-keyword">let</span> searcher = index.searcher();</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">extract_doc_given_isbn</span></span>(
+    reader: &amp;IndexReader,
+    isbn_term: &amp;Term,
+) -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;<span class="hljs-built_in">Option</span>&lt;Document&gt;&gt; {
+    <span class="hljs-keyword">let</span> searcher = reader.searcher();</pre></div></div>
             
         </li>
         
@@ -85,11 +89,10 @@ or term frequencies.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> term_query = TermQuery::new(isbn_term.clone(), IndexRecordOption::Basic);
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> top_collector = TopCollector::with_limit(<span class="hljs-number">1</span>);
-    searcher.search(&amp;term_query, &amp;<span class="hljs-keyword">mut</span> top_collector)?;
+    <span class="hljs-keyword">let</span> top_docs = searcher.search(&amp;term_query, &amp;TopDocs::with_limit(<span class="hljs-number">1</span>))?;
 
-    <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(doc_address) =  top_collector.docs().first() {
-        <span class="hljs-keyword">let</span> doc = searcher.doc(doc_address)?;
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>((_score, doc_address)) = top_docs.first() {
+        <span class="hljs-keyword">let</span> doc = searcher.doc(*doc_address)?;
         <span class="hljs-literal">Ok</span>(<span class="hljs-literal">Some</span>(doc))
     } <span class="hljs-keyword">else</span> {</pre></div></div>
             
@@ -127,7 +130,7 @@ small sense to you.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = SchemaBuilder::<span class="hljs-keyword">default</span>();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();</pre></div></div>
             
         </li>
         
@@ -190,7 +193,7 @@ we also mark the field as stored.</p>
        isbn =&gt; <span class="hljs-string">"978-9176370711"</span>,
     ));
     index_writer.commit()?;
-    index.load_searchers()?;
+    <span class="hljs-keyword">let</span> reader = index.reader()?;
 
     <span class="hljs-keyword">let</span> frankenstein_isbn = Term::from_field_text(isbn, <span class="hljs-string">"978-9176370711"</span>);</pre></div></div>
             
@@ -207,7 +210,7 @@ we also mark the field as stored.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> frankenstein_doc_misspelled = extract_doc_given_isbn(&amp;index, &amp;frankenstein_isbn)?.unwrap();
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> frankenstein_doc_misspelled = extract_doc_given_isbn(&amp;reader, &amp;frankenstein_isbn)?.unwrap();
     <span class="hljs-built_in">assert_eq!</span>(
         schema.to_json(&amp;frankenstein_doc_misspelled),
         <span class="hljs-string">r#"{"isbn":["978-9176370711"],"title":["Frankentein"]}"#</span>,
@@ -289,7 +292,7 @@ Everything happened as if the document was updated.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    index.load_searchers()?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    reader.reload()?;</pre></div></div>
             
         </li>
         
@@ -304,7 +307,7 @@ Everything happened as if the document was updated.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> frankenstein_new_doc = extract_doc_given_isbn(&amp;index, &amp;frankenstein_isbn)?.unwrap();
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> frankenstein_new_doc = extract_doc_given_isbn(&amp;reader, &amp;frankenstein_isbn)?.unwrap();
     <span class="hljs-built_in">assert_eq!</span>(
         schema.to_json(&amp;frankenstein_new_doc),
         <span class="hljs-string">r#"{"isbn":["978-9176370711"],"title":["Frankenstein"]}"#</span>,

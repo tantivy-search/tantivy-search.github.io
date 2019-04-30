@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Searching a range on an indexed int field.</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="searching-a-range-on-an-indexed-int-field-">Searching a range on an indexed int field.</h1>
+<p>Below is an example of creating an indexed integer field in your schema
+You can use RangeQuery to get a Count of all occurrences in a given range.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-meta">#[macro_use]</span>
+<span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tantivy;
+<span class="hljs-keyword">use</span> tantivy::collector::Count;
+<span class="hljs-keyword">use</span> tantivy::query::RangeQuery;
+<span class="hljs-keyword">use</span> tantivy::schema::{Schema, INDEXED};
+<span class="hljs-keyword">use</span> tantivy::Index;
+<span class="hljs-keyword">use</span> tantivy::<span class="hljs-built_in">Result</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">run</span></span>() -&gt; <span class="hljs-built_in">Result</span>&lt;()&gt; {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>For the sake of simplicity, this schema will only have 1 field</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p><code>INDEXED</code> is a short-hand to indicate that our field should be “searchable”.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> year_field = schema_builder.add_u64_field(<span class="hljs-string">"year"</span>, INDEXED);
+    <span class="hljs-keyword">let</span> schema = schema_builder.build();
+    <span class="hljs-keyword">let</span> index = Index::create_in_ram(schema);
+    <span class="hljs-keyword">let</span> reader = index.reader()?;
+    {
+        <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> index_writer = index.writer_with_num_threads(<span class="hljs-number">1</span>, <span class="hljs-number">6_000_000</span>)?;
+        <span class="hljs-keyword">for</span> year <span class="hljs-keyword">in</span> <span class="hljs-number">1950u64</span>..<span class="hljs-number">2019u64</span> {
+            index_writer.add_document(doc!(year_field =&gt; year));
+        }
+        index_writer.commit()?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>The index will be a range of years</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    }
+    reader.reload()?;
+    <span class="hljs-keyword">let</span> searcher = reader.searcher();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>The end is excluded i.e. here we are searching up to 1969</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> docs_in_the_sixties = RangeQuery::new_u64(year_field, <span class="hljs-number">1960</span>..<span class="hljs-number">1970</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Uses a Count collector to sum the total number of docs in the range</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> num_60s_books = searcher.search(&amp;docs_in_the_sixties, &amp;Count)?;
+    <span class="hljs-built_in">assert_eq!</span>(num_60s_books, <span class="hljs-number">10</span>);
+    <span class="hljs-literal">Ok</span>(())
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    run().unwrap()
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

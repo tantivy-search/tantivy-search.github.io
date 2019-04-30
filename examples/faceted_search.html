@@ -87,10 +87,10 @@ sake of this example</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">let</span> index_path = TempDir::new(<span class="hljs-string">"tantivy_facet_example_dir"</span>)?;
-  <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = SchemaBuilder::<span class="hljs-keyword">default</span>();
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> index_path = TempDir::new(<span class="hljs-string">"tantivy_facet_example_dir"</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();
 
-  schema_builder.add_text_field(<span class="hljs-string">"name"</span>, TEXT | STORED);</pre></div></div>
+    schema_builder.add_text_field(<span class="hljs-string">"name"</span>, TEXT | STORED);</pre></div></div>
             
         </li>
         
@@ -105,16 +105,16 @@ sake of this example</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  schema_builder.add_facet_field(<span class="hljs-string">"tags"</span>);
+            <div class="content"><div class='highlight'><pre>    schema_builder.add_facet_field(<span class="hljs-string">"tags"</span>);
 
-  <span class="hljs-keyword">let</span> schema = schema_builder.build();
+    <span class="hljs-keyword">let</span> schema = schema_builder.build();
 
-  <span class="hljs-keyword">let</span> index = Index::create_in_dir(&amp;index_path, schema.clone())?;
+    <span class="hljs-keyword">let</span> index = Index::create_in_dir(&amp;index_path, schema.clone())?;
 
-  <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> index_writer = index.writer(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> index_writer = index.writer(<span class="hljs-number">50_000_000</span>)?;
 
-  <span class="hljs-keyword">let</span> name = schema.get_field(<span class="hljs-string">"name"</span>).unwrap();
-  <span class="hljs-keyword">let</span> tags = schema.get_field(<span class="hljs-string">"tags"</span>).unwrap();</pre></div></div>
+    <span class="hljs-keyword">let</span> name = schema.get_field(<span class="hljs-string">"name"</span>).unwrap();
+    <span class="hljs-keyword">let</span> tags = schema.get_field(<span class="hljs-string">"tags"</span>).unwrap();</pre></div></div>
             
         </li>
         
@@ -130,28 +130,26 @@ reduce the boilerplate above.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  index_writer.add_document(doc!(
+            <div class="content"><div class='highlight'><pre>    index_writer.add_document(doc!(
         name =&gt; <span class="hljs-string">"the ditch"</span>,
         tags =&gt; Facet::from(<span class="hljs-string">"/pools/north"</span>)
     ));
 
-  index_writer.add_document(doc!(
+    index_writer.add_document(doc!(
         name =&gt; <span class="hljs-string">"little stacey"</span>,
         tags =&gt; Facet::from(<span class="hljs-string">"/pools/south"</span>)
     ));
 
-  index_writer.commit()?;
+    index_writer.commit()?;
 
-  index.load_searchers()?;
+    <span class="hljs-keyword">let</span> reader = index.reader()?;
 
-  <span class="hljs-keyword">let</span> searcher = index.searcher();
+    <span class="hljs-keyword">let</span> searcher = reader.searcher();
 
-  <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> facet_collector = FacetCollector::for_field(tags);
-  facet_collector.add_facet(<span class="hljs-string">"/pools"</span>);
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> facet_collector = FacetCollector::for_field(tags);
+    facet_collector.add_facet(<span class="hljs-string">"/pools"</span>);
 
-  searcher.search(&amp;AllQuery, &amp;<span class="hljs-keyword">mut</span> facet_collector).unwrap();
-
-  <span class="hljs-keyword">let</span> counts = facet_collector.harvest();</pre></div></div>
+    <span class="hljs-keyword">let</span> facet_counts = searcher.search(&amp;AllQuery, &amp;facet_collector).unwrap();</pre></div></div>
             
         </li>
         
@@ -166,16 +164,16 @@ reduce the boilerplate above.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">let</span> facets: <span class="hljs-built_in">Vec</span>&lt;(&amp;Facet, <span class="hljs-built_in">u64</span>)&gt; = counts.get(<span class="hljs-string">"/pools"</span>).collect();
-  <span class="hljs-built_in">assert_eq!</span>(
-    facets,
-    <span class="hljs-built_in">vec!</span>[
-      (&amp;Facet::from(<span class="hljs-string">"/pools/north"</span>), <span class="hljs-number">1</span>),
-      (&amp;Facet::from(<span class="hljs-string">"/pools/south"</span>), <span class="hljs-number">1</span>)
-    ]
-  );
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> facets: <span class="hljs-built_in">Vec</span>&lt;(&amp;Facet, <span class="hljs-built_in">u64</span>)&gt; = facet_counts.get(<span class="hljs-string">"/pools"</span>).collect();
+    <span class="hljs-built_in">assert_eq!</span>(
+        facets,
+        <span class="hljs-built_in">vec!</span>[
+            (&amp;Facet::from(<span class="hljs-string">"/pools/north"</span>), <span class="hljs-number">1</span>),
+            (&amp;Facet::from(<span class="hljs-string">"/pools/south"</span>), <span class="hljs-number">1</span>),
+        ]
+    );
 
-  <span class="hljs-literal">Ok</span>(())
+    <span class="hljs-literal">Ok</span>(())
 }
 
 <span class="hljs-keyword">use</span> tempdir::TempDir;</pre></div></div>

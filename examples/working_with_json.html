@@ -58,10 +58,10 @@ Check out the basic example if this is confusing to you.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = SchemaBuilder::<span class="hljs-keyword">default</span>();
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();
     schema_builder.add_text_field(<span class="hljs-string">"title"</span>, TEXT | STORED);
     schema_builder.add_text_field(<span class="hljs-string">"body"</span>, TEXT);
-    schema_builder.add_u64_field(<span class="hljs-string">"year"</span>, INT_INDEXED);
+    schema_builder.add_u64_field(<span class="hljs-string">"year"</span>, INDEXED);
     <span class="hljs-keyword">let</span> schema = schema_builder.build();</pre></div></div>
             
         </li>

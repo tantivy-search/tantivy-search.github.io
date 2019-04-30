@@ -65,7 +65,7 @@ with tantivy</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-meta">#[macro_use]</span>
 <span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tantivy;
-<span class="hljs-keyword">use</span> tantivy::collector::TopCollector;
+<span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::tokenizer::*;
@@ -86,7 +86,7 @@ with tantivy</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = SchemaBuilder::<span class="hljs-keyword">default</span>();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();</pre></div></div>
             
         </li>
         
@@ -104,12 +104,12 @@ which will be defined and registered below.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">let</span> text_field_indexing = TextFieldIndexing::<span class="hljs-keyword">default</span>()
-      .set_tokenizer(<span class="hljs-string">"stoppy"</span>)
-      .set_index_option(IndexRecordOption::WithFreqsAndPositions);
-  <span class="hljs-keyword">let</span> text_options = TextOptions::<span class="hljs-keyword">default</span>()
-      .set_indexing_options(text_field_indexing)
-      .set_stored();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> text_field_indexing = TextFieldIndexing::<span class="hljs-keyword">default</span>()
+        .set_tokenizer(<span class="hljs-string">"stoppy"</span>)
+        .set_index_option(IndexRecordOption::WithFreqsAndPositions);
+    <span class="hljs-keyword">let</span> text_options = TextOptions::<span class="hljs-keyword">default</span>()
+        .set_indexing_options(text_field_indexing)
+        .set_stored();</pre></div></div>
             
         </li>
         
@@ -124,7 +124,7 @@ which will be defined and registered below.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  schema_builder.add_text_field(<span class="hljs-string">"title"</span>, text_options);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    schema_builder.add_text_field(<span class="hljs-string">"title"</span>, text_options);</pre></div></div>
             
         </li>
         
@@ -139,17 +139,17 @@ which will be defined and registered below.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">let</span> text_field_indexing = TextFieldIndexing::<span class="hljs-keyword">default</span>()
-      .set_tokenizer(<span class="hljs-string">"stoppy"</span>)
-      .set_index_option(IndexRecordOption::WithFreqsAndPositions);
-  <span class="hljs-keyword">let</span> text_options = TextOptions::<span class="hljs-keyword">default</span>()
-      .set_indexing_options(text_field_indexing)
-      .set_stored();
-  schema_builder.add_text_field(<span class="hljs-string">"body"</span>, text_options);
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> text_field_indexing = TextFieldIndexing::<span class="hljs-keyword">default</span>()
+        .set_tokenizer(<span class="hljs-string">"stoppy"</span>)
+        .set_index_option(IndexRecordOption::WithFreqsAndPositions);
+    <span class="hljs-keyword">let</span> text_options = TextOptions::<span class="hljs-keyword">default</span>()
+        .set_indexing_options(text_field_indexing)
+        .set_stored();
+    schema_builder.add_text_field(<span class="hljs-string">"body"</span>, text_options);
 
-  <span class="hljs-keyword">let</span> schema = schema_builder.build();
+    <span class="hljs-keyword">let</span> schema = schema_builder.build();
 
-  <span class="hljs-keyword">let</span> index = Index::create_in_ram(schema.clone());</pre></div></div>
+    <span class="hljs-keyword">let</span> index = Index::create_in_ram(schema.clone());</pre></div></div>
             
         </li>
         
@@ -165,53 +165,53 @@ then removes all instances of <code>the</code> and <code>and</code> from the cor
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">let</span> tokenizer = SimpleTokenizer
-      .filter(LowerCaser)
-      .filter(StopWordFilter::remove(<span class="hljs-built_in">vec!</span>[
-        <span class="hljs-string">"the"</span>.to_string(),
-        <span class="hljs-string">"and"</span>.to_string(),
-      ]));
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> tokenizer = SimpleTokenizer
+        .filter(LowerCaser)
+        .filter(StopWordFilter::remove(<span class="hljs-built_in">vec!</span>[
+            <span class="hljs-string">"the"</span>.to_string(),
+            <span class="hljs-string">"and"</span>.to_string(),
+        ]));
 
-  index.tokenizers().register(<span class="hljs-string">"stoppy"</span>, tokenizer);
+    index.tokenizers().register(<span class="hljs-string">"stoppy"</span>, tokenizer);
 
-  <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> index_writer = index.writer(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> index_writer = index.writer(<span class="hljs-number">50_000_000</span>)?;
 
-  <span class="hljs-keyword">let</span> title = schema.get_field(<span class="hljs-string">"title"</span>).unwrap();
-  <span class="hljs-keyword">let</span> body = schema.get_field(<span class="hljs-string">"body"</span>).unwrap();
+    <span class="hljs-keyword">let</span> title = schema.get_field(<span class="hljs-string">"title"</span>).unwrap();
+    <span class="hljs-keyword">let</span> body = schema.get_field(<span class="hljs-string">"body"</span>).unwrap();
 
-  index_writer.add_document(doc!(
+    index_writer.add_document(doc!(
     title =&gt; <span class="hljs-string">"The Old Man and the Sea"</span>,
     body =&gt; <span class="hljs-string">"He was an old man who fished alone in a skiff in the Gulf Stream and \
      he had gone eighty-four days now without taking a fish."</span>
-  ));
-
-  index_writer.add_document(doc!(
-      title =&gt; <span class="hljs-string">"Of Mice and Men"</span>,
-      body =&gt; <span class="hljs-string">"A few miles south of Soledad, the Salinas River drops in close to the hillside \
-              bank and runs deep and green. The water is warm too, for it has slipped twinkling \
-              over the yellow sands in the sunlight before reaching the narrow pool. On one \
-              side of the river the golden foothill slopes curve up to the strong and rocky \
-              Gabilan Mountains, but on the valley side the water is lined with trees—willows \
-              fresh and green with every spring, carrying in their lower leaf junctures the \
-              debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
-              limbs and branches that arch over the pool"</span>
-  ));
-
-  index_writer.add_document(doc!(
-       title =&gt; <span class="hljs-string">"Frankenstein"</span>,
-       body =&gt; <span class="hljs-string">"You will rejoice to hear that no disaster has accompanied the commencement of an \
-                enterprise which you have regarded with such evil forebodings.  I arrived here \
-                yesterday, and my first task is to assure my dear sister of my welfare and \
-                increasing confidence in the success of my undertaking."</span>
     ));
 
-  index_writer.commit()?;
+    index_writer.add_document(doc!(
+    title =&gt; <span class="hljs-string">"Of Mice and Men"</span>,
+    body =&gt; <span class="hljs-string">"A few miles south of Soledad, the Salinas River drops in close to the hillside \
+            bank and runs deep and green. The water is warm too, for it has slipped twinkling \
+            over the yellow sands in the sunlight before reaching the narrow pool. On one \
+            side of the river the golden foothill slopes curve up to the strong and rocky \
+            Gabilan Mountains, but on the valley side the water is lined with trees—willows \
+            fresh and green with every spring, carrying in their lower leaf junctures the \
+            debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
+            limbs and branches that arch over the pool"</span>
+    ));
 
-  index.load_searchers()?;
+    index_writer.add_document(doc!(
+    title =&gt; <span class="hljs-string">"Frankenstein"</span>,
+    body =&gt; <span class="hljs-string">"You will rejoice to hear that no disaster has accompanied the commencement of an \
+             enterprise which you have regarded with such evil forebodings.  I arrived here \
+             yesterday, and my first task is to assure my dear sister of my welfare and \
+             increasing confidence in the success of my undertaking."</span>
+    ));
 
-  <span class="hljs-keyword">let</span> searcher = index.searcher();
+    index_writer.commit()?;
 
-  <span class="hljs-keyword">let</span> query_parser = QueryParser::for_index(&amp;index, <span class="hljs-built_in">vec!</span>[title, body]);</pre></div></div>
+    <span class="hljs-keyword">let</span> reader = index.reader()?;
+
+    <span class="hljs-keyword">let</span> searcher = reader.searcher();
+
+    <span class="hljs-keyword">let</span> query_parser = QueryParser::for_index(&amp;index, <span class="hljs-built_in">vec!</span>[title, body]);</pre></div></div>
             
         </li>
         
@@ -227,20 +227,16 @@ The following will be equivalent to <code>title:frankenstein</code></p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">let</span> query = query_parser.parse_query(<span class="hljs-string">"title:\"the Frankenstein\""</span>)?;
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> query = query_parser.parse_query(<span class="hljs-string">"title:\"the Frankenstein\""</span>)?;
+    <span class="hljs-keyword">let</span> top_docs = searcher.search(&amp;query, &amp;TopDocs::with_limit(<span class="hljs-number">10</span>))?;
 
-  <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> top_collector = TopCollector::with_limit(<span class="hljs-number">10</span>);
+    <span class="hljs-keyword">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {
+        <span class="hljs-keyword">let</span> retrieved_doc = searcher.doc(doc_address)?;
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"\n==\nDocument score {}:"</span>, score);
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, schema.to_json(&amp;retrieved_doc));
+    }
 
-  searcher.search(&amp;*query, &amp;<span class="hljs-keyword">mut</span> top_collector)?;
-
-  <span class="hljs-keyword">let</span> doc_addresses = top_collector.docs();
-
-  <span class="hljs-keyword">for</span> doc_address <span class="hljs-keyword">in</span> doc_addresses {
-    <span class="hljs-keyword">let</span> retrieved_doc = searcher.doc(&amp;doc_address)?;
-    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, schema.to_json(&amp;retrieved_doc));
-  }
-
-  <span class="hljs-literal">Ok</span>(())
+    <span class="hljs-literal">Ok</span>(())
 }</pre></div></div>
             
         </li>

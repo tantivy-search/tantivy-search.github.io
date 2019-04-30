@@ -36,7 +36,6 @@ tantivy.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>
-
 <span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tempdir;</pre></div></div>
             
         </li>
@@ -67,10 +66,12 @@ tantivy.</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-meta">#[macro_use]</span>
 <span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tantivy;
-<span class="hljs-keyword">use</span> tantivy::collector::TopCollector;
+<span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::Index;
+<span class="hljs-keyword">use</span> tantivy::ReloadPolicy;
+<span class="hljs-keyword">use</span> tempdir::TempDir;
 
 <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -120,7 +121,7 @@ be indexed”.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = SchemaBuilder::<span class="hljs-keyword">default</span>();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();</pre></div></div>
             
         </li>
         
@@ -278,27 +279,27 @@ reduce the boilerplate above.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    index_writer.add_document(doc!(
-        title =&gt; <span class="hljs-string">"Of Mice and Men"</span>,
-        body =&gt; <span class="hljs-string">"A few miles south of Soledad, the Salinas River drops in close to the hillside \
-                bank and runs deep and green. The water is warm too, for it has slipped twinkling \
-                over the yellow sands in the sunlight before reaching the narrow pool. On one \
-                side of the river the golden foothill slopes curve up to the strong and rocky \
-                Gabilan Mountains, but on the valley side the water is lined with trees—willows \
-                fresh and green with every spring, carrying in their lower leaf junctures the \
-                debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
-                limbs and branches that arch over the pool"</span>
+    title =&gt; <span class="hljs-string">"Of Mice and Men"</span>,
+    body =&gt; <span class="hljs-string">"A few miles south of Soledad, the Salinas River drops in close to the hillside \
+            bank and runs deep and green. The water is warm too, for it has slipped twinkling \
+            over the yellow sands in the sunlight before reaching the narrow pool. On one \
+            side of the river the golden foothill slopes curve up to the strong and rocky \
+            Gabilan Mountains, but on the valley side the water is lined with trees—willows \
+            fresh and green with every spring, carrying in their lower leaf junctures the \
+            debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
+            limbs and branches that arch over the pool"</span>
     ));
 
     index_writer.add_document(doc!(
-        title =&gt; <span class="hljs-string">"Of Mice and Men"</span>,
-        body =&gt; <span class="hljs-string">"A few miles south of Soledad, the Salinas River drops in close to the hillside \
-                bank and runs deep and green. The water is warm too, for it has slipped twinkling \
-                over the yellow sands in the sunlight before reaching the narrow pool. On one \
-                side of the river the golden foothill slopes curve up to the strong and rocky \
-                Gabilan Mountains, but on the valley side the water is lined with trees—willows \
-                fresh and green with every spring, carrying in their lower leaf junctures the \
-                debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
-                limbs and branches that arch over the pool"</span>
+    title =&gt; <span class="hljs-string">"Of Mice and Men"</span>,
+    body =&gt; <span class="hljs-string">"A few miles south of Soledad, the Salinas River drops in close to the hillside \
+            bank and runs deep and green. The water is warm too, for it has slipped twinkling \
+            over the yellow sands in the sunlight before reaching the narrow pool. On one \
+            side of the river the golden foothill slopes curve up to the strong and rocky \
+            Gabilan Mountains, but on the valley side the water is lined with trees—willows \
+            fresh and green with every spring, carrying in their lower leaf junctures the \
+            debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
+            limbs and branches that arch over the pool"</span>
     ));</pre></div></div>
             
         </li>
@@ -315,12 +316,12 @@ reduce the boilerplate above.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    index_writer.add_document(doc!(
-       title =&gt; <span class="hljs-string">"Frankenstein"</span>,
-       title =&gt; <span class="hljs-string">"The Modern Prometheus"</span>,
-       body =&gt; <span class="hljs-string">"You will rejoice to hear that no disaster has accompanied the commencement of an \
-                enterprise which you have regarded with such evil forebodings.  I arrived here \
-                yesterday, and my first task is to assure my dear sister of my welfare and \
-                increasing confidence in the success of my undertaking."</span>
+    title =&gt; <span class="hljs-string">"Frankenstein"</span>,
+    title =&gt; <span class="hljs-string">"The Modern Prometheus"</span>,
+    body =&gt; <span class="hljs-string">"You will rejoice to hear that no disaster has accompanied the commencement of an \
+             enterprise which you have regarded with such evil forebodings.  I arrived here \
+             yesterday, and my first task is to assure my dear sister of my welfare and \
+             increasing confidence in the success of my undertaking."</span>
     ));</pre></div></div>
             
         </li>
@@ -390,13 +391,20 @@ commit.</p>
               </div>
               <h1 id="searching">Searching</h1>
 <h3 id="searcher">Searcher</h3>
-<p>Let’s search our index. Start by reloading
-searchers in the index. This should be done
-after every <code>commit()</code>.</p>
+<p>A reader is required to get search the index.
+It acts as a <code>Searcher</code> pool that reloads itself,
+depending on a <code>ReloadPolicy</code>.</p>
+<p>For a search server you will typically create one reader for the entire lifetime of your
+program, and acquire a new searcher for every single request.</p>
+<p>In the code below, we rely on the ‘ON_COMMIT’ policy: the reader
+will reload the index automatically after each commit.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    index.load_searchers()?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> reader = index
+        .reader_builder()
+        .reload_policy(ReloadPolicy::OnCommit)
+        .try_into()?;</pre></div></div>
             
         </li>
         
@@ -407,19 +415,18 @@ after every <code>commit()</code>.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
-              <p>We now need to acquire a searcher.
-Some search experience might require more than
-one query.</p>
-<p>The searcher ensure that we get to work
-with a consistent version of the index.</p>
+              <p>We now need to acquire a searcher.</p>
+<p>A searcher points to snapshotted, immutable version of the index.</p>
+<p>Some search experience might require more than
+one query. Using the same searcher ensures that all of these queries will run on the
+same version of the index.</p>
 <p>Acquiring a <code>searcher</code> is very cheap.</p>
-<p>You should acquire a searcher every time you
-start processing a request and
+<p>You should acquire a searcher every time you start processing a request and
 and release it right after your query is finished.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> searcher = index.searcher();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> searcher = reader.searcher();</pre></div></div>
             
         </li>
         
@@ -498,11 +505,9 @@ any document matching at least one of our terms.</p>
               <h3 id="collectors">Collectors</h3>
 <p>We are not interested in all of the documents but
 only in the top 10. Keeping track of our top 10 best documents
-is the role of the TopCollector.</p>
+is the role of the TopDocs.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> top_collector = TopCollector::with_limit(<span class="hljs-number">10</span>);</pre></div></div>
             
         </li>
         
@@ -517,7 +522,7 @@ is the role of the TopCollector.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    searcher.search(&amp;*query, &amp;<span class="hljs-keyword">mut</span> top_collector)?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> top_docs = searcher.search(&amp;query, &amp;TopDocs::with_limit(<span class="hljs-number">10</span>))?;</pre></div></div>
             
         </li>
         
@@ -528,22 +533,6 @@ is the role of the TopCollector.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
-              <p>Our top collector now contains the 10
-most relevant doc ids…</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> doc_addresses = top_collector.docs();</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-28">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
-              </div>
               <p>The actual documents still need to be
 retrieved from Tantivy’s store.</p>
 <p>Since the body field was not configured as stored,
@@ -552,18 +541,13 @@ a title.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>
-    <span class="hljs-keyword">for</span> doc_address <span class="hljs-keyword">in</span> doc_addresses {
-        <span class="hljs-keyword">let</span> retrieved_doc = searcher.doc(&amp;doc_address)?;
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> (_score, doc_address) <span class="hljs-keyword">in</span> top_docs {
+        <span class="hljs-keyword">let</span> retrieved_doc = searcher.doc(doc_address)?;
         <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, schema.to_json(&amp;retrieved_doc));
     }
 
-
     <span class="hljs-literal">Ok</span>(())
-}
-
-
-<span class="hljs-keyword">use</span> tempdir::TempDir;</pre></div></div>
+}</pre></div></div>
             
         </li>
         

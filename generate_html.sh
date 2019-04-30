@@ -7,8 +7,8 @@ mkdir -p $DIR
 cd $DIR
 npm install docco@0.8
 rm -fr tantivy
-#git clone git@github.com:tantivy-search/tantivy.git
-git clone /home/paul/git/tantivy
+git clone git@github.com:tantivy-search/tantivy.git
+#git clone /home/paul/git/tantivy
 cd tantivy/examples
 for example in $(ls *.rs)
 do

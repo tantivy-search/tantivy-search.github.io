@@ -60,7 +60,7 @@ its term frequency, and accessing its positions.</p>
 <span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tantivy;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::Index;
-<span class="hljs-keyword">use</span> tantivy::{DocSet, DocId, Postings};
+<span class="hljs-keyword">use</span> tantivy::{DocId, DocSet, Postings};
 
 <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -78,7 +78,7 @@ example. Check the <code>basic_search</code> example for more information.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = SchemaBuilder::<span class="hljs-keyword">default</span>();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();</pre></div></div>
             
         </li>
         
@@ -105,9 +105,9 @@ field. <code>TEXT</code> precisely does this.</p>
     index_writer.add_document(doc!(title =&gt; <span class="hljs-string">"The modern Promotheus"</span>));
     index_writer.commit()?;
 
-    index.load_searchers()?;
+    <span class="hljs-keyword">let</span> reader = index.reader()?;
 
-    <span class="hljs-keyword">let</span> searcher = index.searcher();</pre></div></div>
+    <span class="hljs-keyword">let</span> searcher = reader.searcher();</pre></div></div>
             
         </li>
         
@@ -181,7 +181,9 @@ information.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(<span class="hljs-keyword">mut</span> segment_postings) = inverted_index.read_postings(&amp;term_the, IndexRecordOption::WithFreqsAndPositions) {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(<span class="hljs-keyword">mut</span> segment_postings) =
+            inverted_index.read_postings(&amp;term_the, IndexRecordOption::WithFreqsAndPositions)
+        {</pre></div></div>
             
         </li>
         
@@ -381,7 +383,9 @@ information.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(<span class="hljs-keyword">mut</span> block_segment_postings) = inverted_index.read_block_postings(&amp;term_the, IndexRecordOption::Basic) {
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(<span class="hljs-keyword">mut</span> block_segment_postings) =
+            inverted_index.read_block_postings(&amp;term_the, IndexRecordOption::Basic)
+        {
             <span class="hljs-keyword">while</span> block_segment_postings.advance() {</pre></div></div>
             
         </li>
