@@ -19,8 +19,8 @@ rm -fr ../examples
 cp -R html ../examples
 
 # building the mdbook
-cd tantivy/doc
-mdbook build
-cd ${DIR}
-rm -fr ../book
-cp -R tantivy/doc/book ../book
+#cd tantivy/doc
+#mdbook build
+#cd ${DIR}
+#rm -fr ../book
+#cp -R tantivy/doc/book ../book

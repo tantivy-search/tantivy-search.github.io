@@ -30,9 +30,6 @@ such as the <code>CountCollector</code> for more examples.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>
-<span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tempdir;</pre></div></div>
-            
         </li>
         
         
@@ -66,8 +63,8 @@ such as the <code>CountCollector</code> for more examples.</p>
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::Field;
 <span class="hljs-keyword">use</span> tantivy::schema::{Schema, FAST, INDEXED, TEXT};
-<span class="hljs-keyword">use</span> tantivy::Index;
 <span class="hljs-keyword">use</span> tantivy::SegmentReader;
+<span class="hljs-keyword">use</span> tantivy::{Index, TantivyError};
 
 <span class="hljs-meta">#[derive(Default)]</span>
 <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Stats</span></span> {
@@ -136,9 +133,18 @@ Our standard deviation will be a float.</p>
     <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">for_segment</span></span>(
         &amp;<span class="hljs-keyword">self</span>,
         _segment_local_id: <span class="hljs-built_in">u32</span>,
-        segment: &amp;SegmentReader,
+        segment_reader: &amp;SegmentReader,
     ) -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;StatsSegmentCollector&gt; {
-        <span class="hljs-keyword">let</span> fast_field_reader = segment.fast_field_reader(<span class="hljs-keyword">self</span>.field)?;
+        <span class="hljs-keyword">let</span> fast_field_reader = segment_reader
+            .fast_fields()
+            .<span class="hljs-built_in">u64</span>(<span class="hljs-keyword">self</span>.field)
+            .ok_or_else(|| {
+                <span class="hljs-keyword">let</span> field_name = segment_reader.schema().get_field_name(<span class="hljs-keyword">self</span>.field);
+                TantivyError::SchemaError(<span class="hljs-built_in">format!</span>(
+                    <span class="hljs-string">"Field {:?} is not a u64 fast field."</span>,
+                    field_name
+                ))
+            })?;
         <span class="hljs-literal">Ok</span>(StatsSegmentCollector {
             fast_field_reader,
             stats: Stats::<span class="hljs-keyword">default</span>(),
