@@ -68,7 +68,7 @@ tantivy.</p>
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::Index;
 <span class="hljs-keyword">use</span> tantivy::ReloadPolicy;
-<span class="hljs-keyword">use</span> tempdir::TempDir;
+<span class="hljs-keyword">use</span> tempfile::TempDir;
 
 <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -86,7 +86,7 @@ sake of this example</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> index_path = TempDir::new(<span class="hljs-string">"tantivy_example_dir"</span>)?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> index_path = TempDir::new()?;</pre></div></div>
             
         </li>
         
