@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>Searching a range on an indexed int field.</title>
+  <title>Document from json</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="docco.css" />
@@ -134,18 +134,10 @@
               <div class="sswrap ">
                 <a class="ss" href="#section-1">&#x00a7;</a>
               </div>
-              <h1 id="searching-a-range-on-an-indexed-int-field">Searching a range on an indexed int field.</h1>
-<p>Below is an example of creating an indexed integer field in your schema
-You can use RangeQuery to get a Count of all occurrences in a given range.</p>
-
+              
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::Count;
-<span class="hljs-keyword">use</span> tantivy::query::RangeQuery;
-<span class="hljs-keyword">use</span> tantivy::schema::{Schema, INDEXED};
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, <span class="hljs-type">Result</span>};
-
-<span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::schema::*;</pre></div></div>
             
         </li>
         
@@ -156,11 +148,12 @@ You can use RangeQuery to get a Count of all occurrences in a given range.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-2">&#x00a7;</a>
               </div>
-              <p>For the sake of simplicity, this schema will only have 1 field</p>
+              <h1 id="document-from-json">Document from json</h1>
+<p>For convenience, <code>Document</code> can be parsed directly from json.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
         </li>
         
@@ -171,20 +164,17 @@ You can use RangeQuery to get a Count of all occurrences in a given range.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-3">&#x00a7;</a>
               </div>
-              <p><code>INDEXED</code> is a short-hand to indicate that our field should be “searchable”.</p>
+              <p>Let’s first define a schema and an index.
+Check out the basic example if this is confusing to you.</p>
+<p>first we need to define a schema …</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">year_field</span> = schema_builder.<span class="hljs-title function_ invoke__">add_u64_field</span>(<span class="hljs-string">&quot;year&quot;</span>, INDEXED);
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index.<span class="hljs-title function_ invoke__">reader</span>()?;
-    {
-        <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">6_000_000</span>)?;
-        <span class="hljs-keyword">for</span> <span class="hljs-variable">year</span> <span class="hljs-keyword">in</span> <span class="hljs-number">1950u64</span>..<span class="hljs-number">2019u64</span> {
-            index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(year_field =&gt; year))?;
-        }
-        index_writer.<span class="hljs-title function_ invoke__">commit</span>()?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();
+    schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;title&quot;</span>, TEXT | STORED);
+    schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;body&quot;</span>, TEXT);
+    schema_builder.<span class="hljs-title function_ invoke__">add_u64_field</span>(<span class="hljs-string">&quot;year&quot;</span>, INDEXED);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();</pre></div></div>
             
         </li>
         
@@ -195,13 +185,14 @@ You can use RangeQuery to get a Count of all occurrences in a given range.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-4">&#x00a7;</a>
               </div>
-              <p>The index will be a range of years</p>
+              <p>Let’s assume we have a json-serialized document.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    }
-    reader.<span class="hljs-title function_ invoke__">reload</span>()?;
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">mice_and_men_doc_json</span> = <span class="hljs-string">r#&quot;{
+       &quot;title&quot;: &quot;Of Mice and Men&quot;,
+       &quot;year&quot;: 1937
+    }&quot;#</span>;</pre></div></div>
             
         </li>
         
@@ -212,11 +203,11 @@ You can use RangeQuery to get a Count of all occurrences in a given range.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-5">&#x00a7;</a>
               </div>
-              <p>The end is excluded i.e. here we are searching up to 1969</p>
+              <p>We can parse our document</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">docs_in_the_sixties</span> = RangeQuery::<span class="hljs-title function_ invoke__">new_u64</span>(<span class="hljs-string">&quot;year&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>(), <span class="hljs-number">1960</span>..<span class="hljs-number">1970</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">_mice_and_men_doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(mice_and_men_doc_json)?;</pre></div></div>
             
         </li>
         
@@ -227,13 +218,34 @@ You can use RangeQuery to get a Count of all occurrences in a given range.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-6">&#x00a7;</a>
               </div>
-              <p>Uses a Count collector to sum the total number of docs in the range</p>
+              <p>Multi-valued field are allowed, they are
+expressed in JSON by an array.
+The following document has two titles.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">num_60s_books</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;docs_in_the_sixties, &amp;Count)?;
-    <span class="hljs-built_in">assert_eq!</span>(num_60s_books, <span class="hljs-number">10</span>);
-    <span class="hljs-title function_ invoke__">Ok</span>(())
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">frankenstein_json</span> = <span class="hljs-string">r#&quot;{
+       &quot;title&quot;: [&quot;Frankenstein&quot;, &quot;The Modern Prometheus&quot;],
+       &quot;year&quot;: 1818
+    }&quot;#</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">_frankenstein_doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(frankenstein_json)?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-7">&#x00a7;</a>
+              </div>
+              <p>Note that the schema is saved in your index directory.</p>
+<p>As a result, Indexes are aware of their schema, and you can use this feature
+just by opening an existing <code>Index</code>, and calling <code>index.schema()..parse_document(json)</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-title function_ invoke__">Ok</span>(())
 }</pre></div></div>
             
         </li>

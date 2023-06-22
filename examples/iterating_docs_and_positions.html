@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>Iterating docs and positioms.</title>
+  <title>Iterating docs and positions.</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="docco.css" />
@@ -11,6 +11,119 @@
   <div id="container">
     <div id="background"></div>
     
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="aggregation.html">
+                  aggregation.rs
+                </a>
+              
+                
+                <a class="source" href="basic_search.html">
+                  basic_search.rs
+                </a>
+              
+                
+                <a class="source" href="custom_collector.html">
+                  custom_collector.rs
+                </a>
+              
+                
+                <a class="source" href="custom_tokenizer.html">
+                  custom_tokenizer.rs
+                </a>
+              
+                
+                <a class="source" href="date_time_field.html">
+                  date_time_field.rs
+                </a>
+              
+                
+                <a class="source" href="deleting_updating_documents.html">
+                  deleting_updating_documents.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search.html">
+                  faceted_search.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search_with_tweaked_score.html">
+                  faceted_search_with_tweaked_score.rs
+                </a>
+              
+                
+                <a class="source" href="fuzzy_search.html">
+                  fuzzy_search.rs
+                </a>
+              
+                
+                <a class="source" href="index_from_multiple_threads.html">
+                  index_from_multiple_threads.rs
+                </a>
+              
+                
+                <a class="source" href="index_with_json.html">
+                  index_with_json.rs
+                </a>
+              
+                
+                <a class="source" href="integer_range_search.html">
+                  integer_range_search.rs
+                </a>
+              
+                
+                <a class="source" href="ip_field.html">
+                  ip_field.rs
+                </a>
+              
+                
+                <a class="source" href="iterating_docs_and_positions.html">
+                  iterating_docs_and_positions.rs
+                </a>
+              
+                
+                <a class="source" href="json_field.html">
+                  json_field.rs
+                </a>
+              
+                
+                <a class="source" href="phrase_prefix_search.html">
+                  phrase_prefix_search.rs
+                </a>
+              
+                
+                <a class="source" href="pre_tokenized_text.html">
+                  pre_tokenized_text.rs
+                </a>
+              
+                
+                <a class="source" href="snippet.html">
+                  snippet.rs
+                </a>
+              
+                
+                <a class="source" href="stop_words.html">
+                  stop_words.rs
+                </a>
+              
+                
+                <a class="source" href="warmer.html">
+                  warmer.rs
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
     <ul class="sections">
         
         
@@ -18,10 +131,10 @@
         <li id="section-1">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-1">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-1">&#x00a7;</a>
               </div>
-              <h1 id="iterating-docs-and-positioms-">Iterating docs and positioms.</h1>
+              <h1 id="iterating-docs-and-positions">Iterating docs and positions.</h1>
 <p>At its core of tantivy, relies on a data structure
 called an inverted index.</p>
 <p>This example shows how to manually iterate through
@@ -36,8 +149,8 @@ its term frequency, and accessing its positions.</p>
         <li id="section-2">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-2">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-2">&#x00a7;</a>
               </div>
               <hr>
 
@@ -49,20 +162,17 @@ its term frequency, and accessing its positions.</p>
         <li id="section-3">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-3">&#x00a7;</a>
               </div>
               <p>Importing tantivy…</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-meta">#[macro_use]</span>
-<span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tantivy;
-<span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::Index;
-<span class="hljs-keyword">use</span> tantivy::{DocId, DocSet, Postings};
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::schema::*;
+<span class="hljs-keyword">use</span> tantivy::{doc, DocSet, Index, Postings, TERMINATED};
 
-<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;()&gt; {</pre></div></div>
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
         </li>
         
@@ -70,15 +180,15 @@ its term frequency, and accessing its positions.</p>
         <li id="section-4">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-4">&#x00a7;</a>
               </div>
               <p>We first create a schema for the sake of the
 example. Check the <code>basic_search</code> example for more information.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();</pre></div></div>
             
         </li>
         
@@ -86,28 +196,28 @@ example. Check the <code>basic_search</code> example for more information.</p>
         <li id="section-5">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-5">&#x00a7;</a>
               </div>
               <p>For this example, we need to make sure to index positions for our title
 field. <code>TEXT</code> precisely does this.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> title = schema_builder.add_text_field(<span class="hljs-string">"title"</span>, TEXT | STORED);
-    <span class="hljs-keyword">let</span> schema = schema_builder.build();
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;title&quot;</span>, TEXT | STORED);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();
 
-    <span class="hljs-keyword">let</span> index = Index::create_in_ram(schema.clone());
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> index_writer = index.writer_with_num_threads(<span class="hljs-number">1</span>, <span class="hljs-number">50_000_000</span>)?;
-    index_writer.add_document(doc!(title =&gt; <span class="hljs-string">"The Old Man and the Sea"</span>));
-    index_writer.add_document(doc!(title =&gt; <span class="hljs-string">"Of Mice and Men"</span>));
-    index_writer.add_document(doc!(title =&gt; <span class="hljs-string">"The modern Promotheus"</span>));
-    index_writer.commit()?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">50_000_000</span>)?;
+    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(title =&gt; <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>))?;
+    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(title =&gt; <span class="hljs-string">&quot;Of Mice and Men&quot;</span>))?;
+    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(title =&gt; <span class="hljs-string">&quot;The modern Promotheus&quot;</span>))?;
+    index_writer.<span class="hljs-title function_ invoke__">commit</span>()?;
 
-    <span class="hljs-keyword">let</span> reader = index.reader()?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index.<span class="hljs-title function_ invoke__">reader</span>()?;
 
-    <span class="hljs-keyword">let</span> searcher = reader.searcher();</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();</pre></div></div>
             
         </li>
         
@@ -115,8 +225,8 @@ field. <code>TEXT</code> precisely does this.</p>
         <li id="section-6">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-6">&#x00a7;</a>
               </div>
               <p>A tantivy index is actually a collection of segments.
 Similarly, a searcher just wraps a list <code>segment_reader</code>.</p>
@@ -126,7 +236,7 @@ anyway)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> segment_reader <span class="hljs-keyword">in</span> searcher.segment_readers() {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> <span class="hljs-variable">segment_reader</span> <span class="hljs-keyword">in</span> searcher.<span class="hljs-title function_ invoke__">segment_readers</span>() {</pre></div></div>
             
         </li>
         
@@ -134,19 +244,19 @@ anyway)</p>
         <li id="section-7">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-7">&#x00a7;</a>
               </div>
               <p>A segment contains different data structure.
 Inverted index stands for the combination of</p>
 <ul>
 <li>the term dictionary</li>
-<li>the inverted lists associated to each terms and their positions</li>
+<li>the inverted lists associated with each terms and their positions</li>
 </ul>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">let</span> inverted_index = segment_reader.inverted_index(title);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">let</span> <span class="hljs-variable">inverted_index</span> = segment_reader.<span class="hljs-title function_ invoke__">inverted_index</span>(title)?;</pre></div></div>
             
         </li>
         
@@ -154,15 +264,15 @@ Inverted index stands for the combination of</p>
         <li id="section-8">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-8">&#x00a7;</a>
               </div>
               <p>A <code>Term</code> is a text token associated with a field.
 Let’s go through all docs containing the term <code>title:the</code> and access their position</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">let</span> term_the = Term::from_field_text(title, <span class="hljs-string">"the"</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">let</span> <span class="hljs-variable">term_the</span> = Term::<span class="hljs-title function_ invoke__">from_field_text</span>(title, <span class="hljs-string">&quot;the&quot;</span>);</pre></div></div>
             
         </li>
         
@@ -170,19 +280,19 @@ Let’s go through all docs containing the term <code>title:the</code> and acces
         <li id="section-9">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-9">&#x00a7;</a>
               </div>
               <p>This segment posting object is like a cursor over the documents matching the term.
-The <code>IndexRecordOption</code> arguments tells tantivy we will be interested in both term frequencies
-and positions.</p>
-<p>If you don’t need all this information, you may get better performance by decompressing less
-information.</p>
+The <code>IndexRecordOption</code> arguments tells tantivy we will be interested in both term
+frequencies and positions.</p>
+<p>If you don’t need all this information, you may get better performance by decompressing
+less information.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(<span class="hljs-keyword">mut</span> segment_postings) =
-            inverted_index.read_postings(&amp;term_the, IndexRecordOption::WithFreqsAndPositions)
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-variable">Some</span>(<span class="hljs-keyword">mut</span> segment_postings) =
+            inverted_index.<span class="hljs-title function_ invoke__">read_postings</span>(&amp;term_the, IndexRecordOption::WithFreqsAndPositions)?
         {</pre></div></div>
             
         </li>
@@ -191,15 +301,16 @@ information.</p>
         <li id="section-10">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-10">&#x00a7;</a>
               </div>
               <p>this buffer will be used to request for positions</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> positions: <span class="hljs-built_in">Vec</span>&lt;<span class="hljs-built_in">u32</span>&gt; = <span class="hljs-built_in">Vec</span>::with_capacity(<span class="hljs-number">100</span>);
-            <span class="hljs-keyword">while</span> segment_postings.advance() {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">positions</span>: <span class="hljs-type">Vec</span>&lt;<span class="hljs-type">u32</span>&gt; = Vec::<span class="hljs-title function_ invoke__">with_capacity</span>(<span class="hljs-number">100</span>);
+            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">doc_id</span> = segment_postings.<span class="hljs-title function_ invoke__">doc</span>();
+            <span class="hljs-keyword">while</span> doc_id != TERMINATED {</pre></div></div>
             
         </li>
         
@@ -207,14 +318,17 @@ information.</p>
         <li id="section-11">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-11">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-11">&#x00a7;</a>
               </div>
-              <p>the number of time the term appears in the document.</p>
+              <p>This MAY contains deleted documents as well.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">let</span> doc_id: DocId = segment_postings.doc(); <span class="hljs-comment">//&lt; do not try to access this before calling advance once.</span></pre></div></div>
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> segment_reader.<span class="hljs-title function_ invoke__">is_deleted</span>(doc_id) {
+                    doc_id = segment_postings.<span class="hljs-title function_ invoke__">advance</span>();
+                    <span class="hljs-keyword">continue</span>;
+                }</pre></div></div>
             
         </li>
         
@@ -222,16 +336,14 @@ information.</p>
         <li id="section-12">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-12">&#x00a7;</a>
               </div>
-              <p>This MAY contains deleted documents as well.</p>
+              <p>the number of time the term appears in the document.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">if</span> segment_reader.is_deleted(doc_id) {
-                    <span class="hljs-keyword">continue</span>;
-                }</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">let</span> <span class="hljs-variable">term_freq</span>: <span class="hljs-type">u32</span> = segment_postings.<span class="hljs-title function_ invoke__">term_freq</span>();</pre></div></div>
             
         </li>
         
@@ -239,14 +351,15 @@ information.</p>
         <li id="section-13">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-13">&#x00a7;</a>
               </div>
-              <p>the number of time the term appears in the document.</p>
+              <p>accessing positions is slightly expensive and lazy, do not request
+for them if you don’t need them for some documents.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">let</span> term_freq: <span class="hljs-built_in">u32</span> = segment_postings.term_freq();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                segment_postings.<span class="hljs-title function_ invoke__">positions</span>(&amp;<span class="hljs-keyword">mut</span> positions);</pre></div></div>
             
         </li>
         
@@ -254,15 +367,14 @@ information.</p>
         <li id="section-14">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-14">&#x00a7;</a>
               </div>
-              <p>accessing positions is slightly expensive and lazy, do not request
-for them if you don’t need them for some documents.</p>
+              <p>By definition we should have <code>term_freq</code> positions.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                segment_postings.positions(&amp;<span class="hljs-keyword">mut</span> positions);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-built_in">assert_eq!</span>(positions.<span class="hljs-title function_ invoke__">len</span>(), term_freq <span class="hljs-keyword">as</span> <span class="hljs-type">usize</span>);</pre></div></div>
             
         </li>
         
@@ -270,30 +382,18 @@ for them if you don’t need them for some documents.</p>
         <li id="section-15">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
-              </div>
-              <p>By definition we should have <code>term_freq</code> positions.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-built_in">assert_eq!</span>(positions.len(), term_freq <span class="hljs-keyword">as</span> <span class="hljs-built_in">usize</span>);</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-16">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-15">&#x00a7;</a>
               </div>
               <p>This prints:</p>
 <pre><code>Doc <span class="hljs-number">0</span>: TermFreq <span class="hljs-number">2</span>: [<span class="hljs-number">0</span>, <span class="hljs-number">4</span>]
-Doc <span class="hljs-number">2</span>: TermFreq <span class="hljs-number">1</span>: [<span class="hljs-number">0</span>]</code></pre>
+Doc <span class="hljs-number">2</span>: TermFreq <span class="hljs-number">1</span>: [<span class="hljs-number">0</span>]
+</code></pre>
+
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Doc {}: TermFreq {}: {:?}"</span>, doc_id, term_freq, positions);
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Doc {doc_id}: TermFreq {term_freq}: {positions:?}&quot;</span>);
+                doc_id = segment_postings.<span class="hljs-title function_ invoke__">advance</span>();
             }
         }
     }</pre></div></div>
@@ -301,27 +401,27 @@ Doc <span class="hljs-number">2</span>: TermFreq <span class="hljs-number">1</sp
         </li>
         
         
-        <li id="section-17">
+        <li id="section-16">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-16">&#x00a7;</a>
               </div>
               <p>A <code>Term</code> is a text token associated with a field.
 Let’s go through all docs containing the term <code>title:the</code> and access their position</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> term_the = Term::from_field_text(title, <span class="hljs-string">"the"</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">term_the</span> = Term::<span class="hljs-title function_ invoke__">from_field_text</span>(title, <span class="hljs-string">&quot;the&quot;</span>);</pre></div></div>
             
         </li>
         
         
-        <li id="section-18">
+        <li id="section-17">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-17">&#x00a7;</a>
               </div>
               <p>Some other powerful operations (especially <code>.skip_to</code>) may be useful to consume these
 posting lists rapidly.
@@ -333,18 +433,38 @@ and the <a href="https://docs.rs/tantivy/~0/tantivy/trait.Postings.html"><code>P
         </li>
         
         
-        <li id="section-19">
+        <li id="section-18">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-18">&#x00a7;</a>
               </div>
               <p>Also, for some VERY specific high performance use case like an OLAP analysis of logs,
 you can get better performance by accessing directly the blocks of doc ids.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> segment_reader <span class="hljs-keyword">in</span> searcher.segment_readers() {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">for</span> <span class="hljs-variable">segment_reader</span> <span class="hljs-keyword">in</span> searcher.<span class="hljs-title function_ invoke__">segment_readers</span>() {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-19">&#x00a7;</a>
+              </div>
+              <p>A segment contains different data structure.
+Inverted index stands for the combination of</p>
+<ul>
+<li>the term dictionary</li>
+<li>the inverted lists associated with each terms and their positions</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">let</span> <span class="hljs-variable">inverted_index</span> = segment_reader.<span class="hljs-title function_ invoke__">inverted_index</span>(title)?;</pre></div></div>
             
         </li>
         
@@ -352,19 +472,25 @@ you can get better performance by accessing directly the blocks of doc ids.</p>
         <li id="section-20">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-20">&#x00a7;</a>
               </div>
-              <p>A segment contains different data structure.
-Inverted index stands for the combination of</p>
-<ul>
-<li>the term dictionary</li>
-<li>the inverted lists associated to each terms and their positions</li>
-</ul>
+              <p>This segment posting object is like a cursor over the documents matching the term.
+The <code>IndexRecordOption</code> arguments tells tantivy we will be interested in both term
+frequencies and positions.</p>
+<p>If you don’t need all this information, you may get better performance by decompressing
+less information.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">let</span> inverted_index = segment_reader.inverted_index(title);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-variable">Some</span>(<span class="hljs-keyword">mut</span> block_segment_postings) =
+            inverted_index.<span class="hljs-title function_ invoke__">read_block_postings</span>(&amp;term_the, IndexRecordOption::Basic)?
+        {
+            <span class="hljs-keyword">loop</span> {
+                <span class="hljs-keyword">let</span> <span class="hljs-variable">docs</span> = block_segment_postings.<span class="hljs-title function_ invoke__">docs</span>();
+                <span class="hljs-keyword">if</span> docs.<span class="hljs-title function_ invoke__">is_empty</span>() {
+                    <span class="hljs-keyword">break</span>;
+                }</pre></div></div>
             
         </li>
         
@@ -372,21 +498,14 @@ Inverted index stands for the combination of</p>
         <li id="section-21">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-21">&#x00a7;</a>
               </div>
-              <p>This segment posting object is like a cursor over the documents matching the term.
-The <code>IndexRecordOption</code> arguments tells tantivy we will be interested in both term frequencies
-and positions.</p>
-<p>If you don’t need all this information, you may get better performance by decompressing less
-information.</p>
+              <p>Once again these docs MAY contains deleted documents as well.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(<span class="hljs-keyword">mut</span> block_segment_postings) =
-            inverted_index.read_block_postings(&amp;term_the, IndexRecordOption::Basic)
-        {
-            <span class="hljs-keyword">while</span> block_segment_postings.advance() {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">let</span> <span class="hljs-variable">docs</span> = block_segment_postings.<span class="hljs-title function_ invoke__">docs</span>();</pre></div></div>
             
         </li>
         
@@ -394,34 +513,20 @@ information.</p>
         <li id="section-22">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
-              </div>
-              <p>Once again these docs MAY contains deleted documents as well.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-keyword">let</span> docs = block_segment_postings.docs();</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-23">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-22">&#x00a7;</a>
               </div>
               <p>Prints <code>Docs [0, 2].</code></p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>                <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Docs {:?}"</span>, docs);
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Docs {docs:?}&quot;</span>);
+                block_segment_postings.<span class="hljs-title function_ invoke__">advance</span>();
             }
         }
     }
 
-    <span class="hljs-literal">Ok</span>(())
+    <span class="hljs-title function_ invoke__">Ok</span>(())
 }</pre></div></div>
             
         </li>
