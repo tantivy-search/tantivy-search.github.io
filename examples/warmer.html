@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>warmer.rs</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="aggregation.html">
+                  aggregation.rs
+                </a>
+              
+                
+                <a class="source" href="basic_search.html">
+                  basic_search.rs
+                </a>
+              
+                
+                <a class="source" href="custom_collector.html">
+                  custom_collector.rs
+                </a>
+              
+                
+                <a class="source" href="custom_tokenizer.html">
+                  custom_tokenizer.rs
+                </a>
+              
+                
+                <a class="source" href="date_time_field.html">
+                  date_time_field.rs
+                </a>
+              
+                
+                <a class="source" href="deleting_updating_documents.html">
+                  deleting_updating_documents.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search.html">
+                  faceted_search.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search_with_tweaked_score.html">
+                  faceted_search_with_tweaked_score.rs
+                </a>
+              
+                
+                <a class="source" href="fuzzy_search.html">
+                  fuzzy_search.rs
+                </a>
+              
+                
+                <a class="source" href="index_from_multiple_threads.html">
+                  index_from_multiple_threads.rs
+                </a>
+              
+                
+                <a class="source" href="index_with_json.html">
+                  index_with_json.rs
+                </a>
+              
+                
+                <a class="source" href="integer_range_search.html">
+                  integer_range_search.rs
+                </a>
+              
+                
+                <a class="source" href="ip_field.html">
+                  ip_field.rs
+                </a>
+              
+                
+                <a class="source" href="iterating_docs_and_positions.html">
+                  iterating_docs_and_positions.rs
+                </a>
+              
+                
+                <a class="source" href="json_field.html">
+                  json_field.rs
+                </a>
+              
+                
+                <a class="source" href="phrase_prefix_search.html">
+                  phrase_prefix_search.rs
+                </a>
+              
+                
+                <a class="source" href="pre_tokenized_text.html">
+                  pre_tokenized_text.rs
+                </a>
+              
+                
+                <a class="source" href="snippet.html">
+                  snippet.rs
+                </a>
+              
+                
+                <a class="source" href="stop_words.html">
+                  stop_words.rs
+                </a>
+              
+                
+                <a class="source" href="warmer.html">
+                  warmer.rs
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>warmer.rs</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-1">&#x00a7;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> std::cmp::Reverse;
+<span class="hljs-keyword">use</span> std::collections::{HashMap, HashSet};
+<span class="hljs-keyword">use</span> std::sync::{Arc, RwLock, Weak};
+
+<span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
+<span class="hljs-keyword">use</span> tantivy::query::QueryParser;
+<span class="hljs-keyword">use</span> tantivy::schema::{Schema, FAST, TEXT};
+<span class="hljs-keyword">use</span> tantivy::{
+    doc, DocAddress, DocId, Index, Opstamp, Searcher, SearcherGeneration, SegmentId, SegmentReader,
+    Warmer,
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-2">&#x00a7;</a>
+              </div>
+              <p>This example shows how warmers can be used to
+load values from an external sources and
+tie their lifecycle to that of the index segments
+using the Warmer API.</p>
+<p>In this example, we assume an e-commerce search engine.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">ProductId</span> = <span class="hljs-type">u64</span>;
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">Price</span> = <span class="hljs-type">u32</span>;
+
+<span class="hljs-keyword">pub</span> <span class="hljs-keyword">trait</span> <span class="hljs-title class_">PriceFetcher</span>: <span class="hljs-built_in">Send</span> + <span class="hljs-built_in">Sync</span> + <span class="hljs-symbol">&#x27;static</span> {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">fetch_prices</span>(&amp;<span class="hljs-keyword">self</span>, product_ids: &amp;[ProductId]) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;Price&gt;;
+}
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">SegmentKey</span> = (SegmentId, <span class="hljs-type">Option</span>&lt;Opstamp&gt;);
+
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">DynamicPriceColumn</span> {
+    field: <span class="hljs-type">String</span>,
+    price_cache: RwLock&lt;HashMap&lt;SegmentKey, Arc&lt;<span class="hljs-type">Vec</span>&lt;Price&gt;&gt;&gt;&gt;,
+    price_fetcher: <span class="hljs-type">Box</span>&lt;<span class="hljs-keyword">dyn</span> PriceFetcher&gt;,
+}
+
+<span class="hljs-keyword">impl</span> <span class="hljs-title class_">DynamicPriceColumn</span> {
+    <span class="hljs-keyword">pub</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">with_product_id_field</span>&lt;T: PriceFetcher&gt;(field: <span class="hljs-type">String</span>, price_fetcher: T) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-keyword">Self</span> {
+        DynamicPriceColumn {
+            field,
+            price_cache: <span class="hljs-built_in">Default</span>::<span class="hljs-title function_ invoke__">default</span>(),
+            price_fetcher: Box::<span class="hljs-title function_ invoke__">new</span>(price_fetcher),
+        }
+    }
+
+    <span class="hljs-keyword">pub</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">price_for_segment</span>(&amp;<span class="hljs-keyword">self</span>, segment_reader: &amp;SegmentReader) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Option</span>&lt;Arc&lt;<span class="hljs-type">Vec</span>&lt;Price&gt;&gt;&gt; {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">segment_key</span> = (segment_reader.<span class="hljs-title function_ invoke__">segment_id</span>(), segment_reader.<span class="hljs-title function_ invoke__">delete_opstamp</span>());
+        <span class="hljs-keyword">self</span>.price_cache.<span class="hljs-title function_ invoke__">read</span>().<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">get</span>(&amp;segment_key).<span class="hljs-title function_ invoke__">cloned</span>()
+    }
+}
+<span class="hljs-keyword">impl</span> <span class="hljs-title class_">Warmer</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">DynamicPriceColumn</span> {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">warm</span>(&amp;<span class="hljs-keyword">self</span>, searcher: &amp;Searcher) <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {
+        <span class="hljs-keyword">for</span> <span class="hljs-variable">segment</span> <span class="hljs-keyword">in</span> searcher.<span class="hljs-title function_ invoke__">segment_readers</span>() {
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">product_id_reader</span> = segment
+                .<span class="hljs-title function_ invoke__">fast_fields</span>()
+                .<span class="hljs-title function_ invoke__">u64</span>(&amp;<span class="hljs-keyword">self</span>.field)?
+                .<span class="hljs-title function_ invoke__">first_or_default_col</span>(<span class="hljs-number">0</span>);
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">product_ids</span>: <span class="hljs-type">Vec</span>&lt;ProductId&gt; = segment
+                .<span class="hljs-title function_ invoke__">doc_ids_alive</span>()
+                .<span class="hljs-title function_ invoke__">map</span>(|doc| product_id_reader.<span class="hljs-title function_ invoke__">get_val</span>(doc))
+                .<span class="hljs-title function_ invoke__">collect</span>();
+
+            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">prices</span> = <span class="hljs-keyword">self</span>.price_fetcher.<span class="hljs-title function_ invoke__">fetch_prices</span>(&amp;product_ids).<span class="hljs-title function_ invoke__">into_iter</span>();
+
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">prices</span>: <span class="hljs-type">Vec</span>&lt;Price&gt; = (<span class="hljs-number">0</span>..segment.<span class="hljs-title function_ invoke__">max_doc</span>())
+                .<span class="hljs-title function_ invoke__">map</span>(|doc| {
+                    <span class="hljs-keyword">if</span> !segment.<span class="hljs-title function_ invoke__">is_deleted</span>(doc) {
+                        prices.<span class="hljs-title function_ invoke__">next</span>().<span class="hljs-title function_ invoke__">unwrap</span>()
+                    } <span class="hljs-keyword">else</span> {
+                        <span class="hljs-number">0</span>
+                    }
+                })
+                .<span class="hljs-title function_ invoke__">collect</span>();
+
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">key</span> = (segment.<span class="hljs-title function_ invoke__">segment_id</span>(), segment.<span class="hljs-title function_ invoke__">delete_opstamp</span>());
+            <span class="hljs-keyword">self</span>.price_cache
+                .<span class="hljs-title function_ invoke__">write</span>()
+                .<span class="hljs-title function_ invoke__">unwrap</span>()
+                .<span class="hljs-title function_ invoke__">insert</span>(key, Arc::<span class="hljs-title function_ invoke__">new</span>(prices));
+        }
+
+        <span class="hljs-title function_ invoke__">Ok</span>(())
+    }
+
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">garbage_collect</span>(&amp;<span class="hljs-keyword">self</span>, live_generations: &amp;[&amp;SearcherGeneration]) {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">live_keys</span>: HashSet&lt;SegmentKey&gt; = live_generations
+            .<span class="hljs-title function_ invoke__">iter</span>()
+            .<span class="hljs-title function_ invoke__">flat_map</span>(|gen| gen.<span class="hljs-title function_ invoke__">segments</span>())
+            .<span class="hljs-title function_ invoke__">map</span>(|(&amp;segment_id, &amp;opstamp)| (segment_id, opstamp))
+            .<span class="hljs-title function_ invoke__">collect</span>();
+
+        <span class="hljs-keyword">self</span>.price_cache
+            .<span class="hljs-title function_ invoke__">write</span>()
+            .<span class="hljs-title function_ invoke__">unwrap</span>()
+            .<span class="hljs-title function_ invoke__">retain</span>(|key, _| live_keys.<span class="hljs-title function_ invoke__">contains</span>(key));
+    }
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-3">&#x00a7;</a>
+              </div>
+              <p>For the sake of this example, the table is just an editable HashMap behind a RwLock.
+This map represents a map (ProductId -&gt; Price)</p>
+<p>In practise, it could be fetching things from an external service, like a SQL table.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">#[derive(Default, Clone)]</span>
+<span class="hljs-keyword">pub</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">ExternalPriceTable</span> {
+    prices: Arc&lt;RwLock&lt;HashMap&lt;ProductId, Price&gt;&gt;&gt;,
+}
+
+<span class="hljs-keyword">impl</span> <span class="hljs-title class_">ExternalPriceTable</span> {
+    <span class="hljs-keyword">pub</span> <span class="hljs-keyword">fn</span> <span class="hljs-title function_">update_price</span>(&amp;<span class="hljs-keyword">self</span>, product_id: ProductId, price: Price) {
+        <span class="hljs-keyword">self</span>.prices.<span class="hljs-title function_ invoke__">write</span>().<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">insert</span>(product_id, price);
+    }
+}
+
+<span class="hljs-keyword">impl</span> <span class="hljs-title class_">PriceFetcher</span> <span class="hljs-keyword">for</span> <span class="hljs-title class_">ExternalPriceTable</span> {
+    <span class="hljs-keyword">fn</span> <span class="hljs-title function_">fetch_prices</span>(&amp;<span class="hljs-keyword">self</span>, product_ids: &amp;[ProductId]) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;Price&gt; {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">prices</span> = <span class="hljs-keyword">self</span>.prices.<span class="hljs-title function_ invoke__">read</span>().<span class="hljs-title function_ invoke__">unwrap</span>();
+
+        product_ids
+            .<span class="hljs-title function_ invoke__">iter</span>()
+            .<span class="hljs-title function_ invoke__">map</span>(|product_id| prices.<span class="hljs-title function_ invoke__">get</span>(product_id).<span class="hljs-title function_ invoke__">cloned</span>().<span class="hljs-title function_ invoke__">unwrap_or</span>(<span class="hljs-number">0</span>))
+            .<span class="hljs-title function_ invoke__">collect</span>()
+    }
+}
+
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-4">&#x00a7;</a>
+              </div>
+              <p>Declaring our schema.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-5">&#x00a7;</a>
+              </div>
+              <p>The product id is assumed to be a primary id for our external price source.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">product_id</span> = schema_builder.<span class="hljs-title function_ invoke__">add_u64_field</span>(<span class="hljs-string">&quot;product_id&quot;</span>, FAST);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">text</span> = schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;text&quot;</span>, TEXT);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span>: Schema = schema_builder.<span class="hljs-title function_ invoke__">build</span>();
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">price_table</span> = ExternalPriceTable::<span class="hljs-title function_ invoke__">default</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">price_dynamic_column</span> = Arc::<span class="hljs-title function_ invoke__">new</span>(DynamicPriceColumn::<span class="hljs-title function_ invoke__">with_product_id_field</span>(
+        <span class="hljs-string">&quot;product_id&quot;</span>.<span class="hljs-title function_ invoke__">to_string</span>(),
+        price_table.<span class="hljs-title function_ invoke__">clone</span>(),
+    ));
+    price_table.<span class="hljs-title function_ invoke__">update_price</span>(OLIVE_OIL, <span class="hljs-number">12</span>);
+    price_table.<span class="hljs-title function_ invoke__">update_price</span>(GLOVES, <span class="hljs-number">13</span>);
+    price_table.<span class="hljs-title function_ invoke__">update_price</span>(SNEAKERS, <span class="hljs-number">80</span>);
+
+    <span class="hljs-keyword">const</span> OLIVE_OIL: ProductId = <span class="hljs-number">323423</span>;
+    <span class="hljs-keyword">const</span> GLOVES: ProductId = <span class="hljs-number">3966623</span>;
+    <span class="hljs-keyword">const</span> SNEAKERS: ProductId = <span class="hljs-number">23222</span>;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">writer</span> = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">10_000_000</span>)?;
+    writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(product_id=&gt;OLIVE_OIL, text=&gt;<span class="hljs-string">&quot;cooking olive oil from greece&quot;</span>))?;
+    writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(product_id=&gt;GLOVES, text=&gt;<span class="hljs-string">&quot;kitchen gloves, perfect for cooking&quot;</span>))?;
+    writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(product_id=&gt;SNEAKERS, text=&gt;<span class="hljs-string">&quot;uber sweet sneakers&quot;</span>))?;
+    writer.<span class="hljs-title function_ invoke__">commit</span>()?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">warmers</span> = <span class="hljs-built_in">vec!</span>[Arc::<span class="hljs-title function_ invoke__">downgrade</span>(&amp;price_dynamic_column) <span class="hljs-keyword">as</span> Weak&lt;<span class="hljs-keyword">dyn</span> Warmer&gt;];
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index.<span class="hljs-title function_ invoke__">reader_builder</span>().<span class="hljs-title function_ invoke__">warmers</span>(warmers).<span class="hljs-title function_ invoke__">try_into</span>()?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">query_parser</span> = QueryParser::<span class="hljs-title function_ invoke__">for_index</span>(&amp;index, <span class="hljs-built_in">vec!</span>[text]);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">query</span> = query_parser.<span class="hljs-title function_ invoke__">parse_query</span>(<span class="hljs-string">&quot;cooking&quot;</span>)?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">score_by_price</span> = <span class="hljs-keyword">move</span> |segment_reader: &amp;SegmentReader| {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">price</span> = price_dynamic_column
+            .<span class="hljs-title function_ invoke__">price_for_segment</span>(segment_reader)
+            .<span class="hljs-title function_ invoke__">unwrap</span>();
+        <span class="hljs-keyword">move</span> |doc_id: DocId| <span class="hljs-title function_ invoke__">Reverse</span>(price[doc_id <span class="hljs-keyword">as</span> <span class="hljs-type">usize</span>])
+    };
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">most_expensive_first</span> = TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">10</span>).<span class="hljs-title function_ invoke__">custom_score</span>(score_by_price);
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">hits</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;most_expensive_first)?;
+    <span class="hljs-built_in">assert_eq!</span>(
+        &amp;hits,
+        &amp;[
+            (
+                <span class="hljs-title function_ invoke__">Reverse</span>(<span class="hljs-number">12u32</span>),
+                DocAddress {
+                    segment_ord: <span class="hljs-number">0</span>,
+                    doc_id: <span class="hljs-number">0u32</span>
+                }
+            ),
+            (
+                <span class="hljs-title function_ invoke__">Reverse</span>(<span class="hljs-number">13u32</span>),
+                DocAddress {
+                    segment_ord: <span class="hljs-number">0</span>,
+                    doc_id: <span class="hljs-number">1u32</span>
+                }
+            ),
+        ]
+    );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-6">&#x00a7;</a>
+              </div>
+              <p>Olive oil just got more expensive!</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    price_table.<span class="hljs-title function_ invoke__">update_price</span>(OLIVE_OIL, <span class="hljs-number">15</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-7">&#x00a7;</a>
+              </div>
+              <p>The price update are directly reflected on <code>reload</code>.</p>
+<p>Be careful here though!…
+You may have spotted that we are still using the same <code>Searcher</code>.</p>
+<p>It is up to the <code>Warmer</code> implementer to decide how
+to control this behavior.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+    reader.<span class="hljs-title function_ invoke__">reload</span>()?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">hits_with_new_prices</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;most_expensive_first)?;
+    <span class="hljs-built_in">assert_eq!</span>(
+        &amp;hits_with_new_prices,
+        &amp;[
+            (
+                <span class="hljs-title function_ invoke__">Reverse</span>(<span class="hljs-number">13u32</span>),
+                DocAddress {
+                    segment_ord: <span class="hljs-number">0</span>,
+                    doc_id: <span class="hljs-number">1u32</span>
+                }
+            ),
+            (
+                <span class="hljs-title function_ invoke__">Reverse</span>(<span class="hljs-number">15u32</span>),
+                DocAddress {
+                    segment_ord: <span class="hljs-number">0</span>,
+                    doc_id: <span class="hljs-number">0u32</span>
+                }
+            ),
+        ]
+    );
+
+    <span class="hljs-title function_ invoke__">Ok</span>(())
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

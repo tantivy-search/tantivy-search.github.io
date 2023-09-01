@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Aggregation example</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="aggregation.html">
+                  aggregation.rs
+                </a>
+              
+                
+                <a class="source" href="basic_search.html">
+                  basic_search.rs
+                </a>
+              
+                
+                <a class="source" href="custom_collector.html">
+                  custom_collector.rs
+                </a>
+              
+                
+                <a class="source" href="custom_tokenizer.html">
+                  custom_tokenizer.rs
+                </a>
+              
+                
+                <a class="source" href="date_time_field.html">
+                  date_time_field.rs
+                </a>
+              
+                
+                <a class="source" href="deleting_updating_documents.html">
+                  deleting_updating_documents.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search.html">
+                  faceted_search.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search_with_tweaked_score.html">
+                  faceted_search_with_tweaked_score.rs
+                </a>
+              
+                
+                <a class="source" href="fuzzy_search.html">
+                  fuzzy_search.rs
+                </a>
+              
+                
+                <a class="source" href="index_from_multiple_threads.html">
+                  index_from_multiple_threads.rs
+                </a>
+              
+                
+                <a class="source" href="index_with_json.html">
+                  index_with_json.rs
+                </a>
+              
+                
+                <a class="source" href="integer_range_search.html">
+                  integer_range_search.rs
+                </a>
+              
+                
+                <a class="source" href="ip_field.html">
+                  ip_field.rs
+                </a>
+              
+                
+                <a class="source" href="iterating_docs_and_positions.html">
+                  iterating_docs_and_positions.rs
+                </a>
+              
+                
+                <a class="source" href="json_field.html">
+                  json_field.rs
+                </a>
+              
+                
+                <a class="source" href="phrase_prefix_search.html">
+                  phrase_prefix_search.rs
+                </a>
+              
+                
+                <a class="source" href="pre_tokenized_text.html">
+                  pre_tokenized_text.rs
+                </a>
+              
+                
+                <a class="source" href="snippet.html">
+                  snippet.rs
+                </a>
+              
+                
+                <a class="source" href="stop_words.html">
+                  stop_words.rs
+                </a>
+              
+                
+                <a class="source" href="warmer.html">
+                  warmer.rs
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-1">&#x00a7;</a>
+              </div>
+              <h1 id="aggregation-example">Aggregation example</h1>
+<p>This example shows how you can use built-in aggregations.
+We will use nested aggregations with buckets and metrics:</p>
+<ul>
+<li>Range buckets and compute the average in each bucket.</li>
+<li>Term aggregation and compute the min price in each bucket</li>
+</ul>
+<hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-2">&#x00a7;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">use</span> serde_json::{Deserializer, Value};
+<span class="hljs-keyword">use</span> tantivy::aggregation::agg_req::Aggregations;
+<span class="hljs-keyword">use</span> tantivy::aggregation::agg_result::AggregationResults;
+<span class="hljs-keyword">use</span> tantivy::aggregation::AggregationCollector;
+<span class="hljs-keyword">use</span> tantivy::query::AllQuery;
+<span class="hljs-keyword">use</span> tantivy::schema::{<span class="hljs-keyword">self</span>, IndexRecordOption, Schema, TextFieldIndexing, FAST};
+<span class="hljs-keyword">use</span> tantivy::Index;
+
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-3">&#x00a7;</a>
+              </div>
+              <h1 id="create-schema">Create Schema</h1>
+<p>Lets create a schema for a footwear shop, with 4 fields: name, category, stock and price.
+category, stock and price will be fast fields as that’s the requirement
+for aggregation queries.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-4">&#x00a7;</a>
+              </div>
+              <p>In preparation of the <code>TermsAggregation</code>, the category field is configured with:</p>
+<ul>
+<li><code>set_fast</code></li>
+<li><code>raw</code> tokenizer</li>
+</ul>
+<p>The tokenizer is set to “raw”, because the fast field uses the same dictionary as the
+inverted index. (This behaviour will change in tantivy 0.20, where the fast field will
+always be raw tokenized independent from the regular tokenizing)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">text_fieldtype</span> = schema::TextOptions::<span class="hljs-title function_ invoke__">default</span>()
+        .<span class="hljs-title function_ invoke__">set_indexing_options</span>(
+            TextFieldIndexing::<span class="hljs-title function_ invoke__">default</span>()
+                .<span class="hljs-title function_ invoke__">set_index_option</span>(IndexRecordOption::WithFreqs)
+                .<span class="hljs-title function_ invoke__">set_tokenizer</span>(<span class="hljs-string">&quot;raw&quot;</span>),
+        )
+        .<span class="hljs-title function_ invoke__">set_fast</span>(<span class="hljs-literal">None</span>)
+        .<span class="hljs-title function_ invoke__">set_stored</span>();
+    schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;category&quot;</span>, text_fieldtype);
+    schema_builder.<span class="hljs-title function_ invoke__">add_f64_field</span>(<span class="hljs-string">&quot;stock&quot;</span>, FAST);
+    schema_builder.<span class="hljs-title function_ invoke__">add_f64_field</span>(<span class="hljs-string">&quot;price&quot;</span>, FAST);
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-5">&#x00a7;</a>
+              </div>
+              <h1 id="indexing-documents">Indexing documents</h1>
+<p>Lets index a bunch of documents for this example.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema.<span class="hljs-title function_ invoke__">clone</span>());
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">data</span> = <span class="hljs-string">r#&quot;{
+        &quot;name&quot;: &quot;Almond Toe Court Shoes, Patent Black&quot;,
+        &quot;category&quot;: &quot;Womens Footwear&quot;,
+        &quot;price&quot;: 99.00,
+        &quot;stock&quot;: 5
+    }
+    {
+        &quot;name&quot;: &quot;Suede Shoes, Blue&quot;,
+        &quot;category&quot;: &quot;Womens Footwear&quot;,
+        &quot;price&quot;: 42.00,
+        &quot;stock&quot;: 4
+    }
+    {
+        &quot;name&quot;: &quot;Leather Driver Saddle Loafers, Tan&quot;,
+        &quot;category&quot;: &quot;Mens Footwear&quot;,
+        &quot;price&quot;: 34.00,
+        &quot;stock&quot;: 12
+    }
+    {
+        &quot;name&quot;: &quot;Flip Flops, Red&quot;,
+        &quot;category&quot;: &quot;Mens Footwear&quot;,
+        &quot;price&quot;: 19.00,
+        &quot;stock&quot;: 6
+    }
+    {
+        &quot;name&quot;: &quot;Flip Flops, Blue&quot;,
+        &quot;category&quot;: &quot;Mens Footwear&quot;,
+        &quot;price&quot;: 19.00,
+        &quot;stock&quot;: 0
+    }
+    {
+        &quot;name&quot;: &quot;Gold Button Cardigan, Black&quot;,
+        &quot;category&quot;: &quot;Womens Casualwear&quot;,
+        &quot;price&quot;: 167.00,
+        &quot;stock&quot;: 6
+    }
+    {
+        &quot;name&quot;: &quot;Cotton Shorts, Medium Red&quot;,
+        &quot;category&quot;: &quot;Womens Casualwear&quot;,
+        &quot;price&quot;: 30.00,
+        &quot;stock&quot;: 5
+    }
+    {
+        &quot;name&quot;: &quot;Fine Stripe Short Sleeve￼Shirt, Grey&quot;,
+        &quot;category&quot;: &quot;Mens Casualwear&quot;,
+        &quot;price&quot;: 49.99,
+        &quot;stock&quot;: 9
+    }
+    {
+        &quot;name&quot;: &quot;Fine Stripe Short Sleeve￼Shirt, Green&quot;,
+        &quot;category&quot;: &quot;Mens Casualwear&quot;,
+        &quot;price&quot;: 49.99,
+        &quot;offer&quot;: 39.99,
+        &quot;stock&quot;: 9
+    }
+    {
+        &quot;name&quot;: &quot;Sharkskin Waistcoat, Charcoal&quot;,
+        &quot;category&quot;: &quot;Mens Formalwear&quot;,
+        &quot;price&quot;: 75.00,
+        &quot;stock&quot;: 2
+    }
+    {
+        &quot;name&quot;: &quot;Lightweight Patch Pocket￼Blazer, Deer&quot;,
+        &quot;category&quot;: &quot;Mens Formalwear&quot;,
+        &quot;price&quot;: 175.50,
+        &quot;stock&quot;: 1
+    }
+    {
+        &quot;name&quot;: &quot;Bird Print Dress, Black&quot;,
+        &quot;category&quot;: &quot;Womens Formalwear&quot;,
+        &quot;price&quot;: 270.00,
+        &quot;stock&quot;: 10
+    }
+    {
+        &quot;name&quot;: &quot;Mid Twist Cut-Out Dress, Pink&quot;,
+        &quot;category&quot;: &quot;Womens Formalwear&quot;,
+        &quot;price&quot;: 540.00,
+        &quot;stock&quot;: 5
+    }&quot;#</span>;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">stream</span> = Deserializer::<span class="hljs-title function_ invoke__">from_str</span>(data).into_iter::&lt;Value&gt;();
+
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">num_indexed</span> = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">for</span> <span class="hljs-variable">value</span> <span class="hljs-keyword">in</span> stream {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(&amp;serde_json::<span class="hljs-title function_ invoke__">to_string</span>(&amp;value.<span class="hljs-title function_ invoke__">unwrap</span>())?)?;
+        index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc)?;
+        num_indexed += <span class="hljs-number">1</span>;
+        <span class="hljs-keyword">if</span> num_indexed &gt; <span class="hljs-number">4</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-6">&#x00a7;</a>
+              </div>
+              <p>Writing the first segment</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            index_writer.<span class="hljs-title function_ invoke__">commit</span>()?;
+        }
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-7">&#x00a7;</a>
+              </div>
+              <p>Writing the second segment</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">commit</span>()?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-8">&#x00a7;</a>
+              </div>
+              <p>We have two segments now. The <code>AggregationCollector</code> will run the aggregation on each
+segment and then merge the results into an <code>IntermediateAggregationResult</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index.<span class="hljs-title function_ invoke__">reader</span>()?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-9">&#x00a7;</a>
+              </div>
+              <hr>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-10">&#x00a7;</a>
+              </div>
+              <h1 id="aggregation-query">Aggregation Query</h1>
+<p>We can construct the query by building the request structure or by deserializing from JSON.
+The JSON API is more stable and therefore recommended.</p>
+<h2 id="request-1">Request 1</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">agg_req_str</span> = <span class="hljs-string">r#&quot;
+    {
+      &quot;group_by_stock&quot;: {
+        &quot;aggs&quot;: {
+          &quot;average_price&quot;: { &quot;avg&quot;: { &quot;field&quot;: &quot;price&quot; } }
+        },
+        &quot;range&quot;: {
+          &quot;field&quot;: &quot;stock&quot;,
+          &quot;ranges&quot;: [
+            { &quot;key&quot;: &quot;few&quot;, &quot;to&quot;: 1.0 },
+            { &quot;key&quot;: &quot;some&quot;, &quot;from&quot;: 1.0, &quot;to&quot;: 10.0 },
+            { &quot;key&quot;: &quot;many&quot;, &quot;from&quot;: 10.0 }
+          ]
+        }
+      }
+    } &quot;#</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-11">&#x00a7;</a>
+              </div>
+              <p>In this Aggregation we want to get the average price for different groups, depending on how
+many items are in stock. We define custom ranges <code>few</code>, <code>some</code>, <code>many</code> via the
+range aggregation.
+For every bucket we want the average price, so we create a nested metric aggregation on the
+range bucket aggregation. Only buckets support nested aggregations.</p>
+<h3 id="request-json-api">Request JSON API</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">agg_req</span>: Aggregations = serde_json::<span class="hljs-title function_ invoke__">from_str</span>(agg_req_str)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">collector</span> = AggregationCollector::<span class="hljs-title function_ invoke__">from_aggs</span>(agg_req, <span class="hljs-built_in">Default</span>::<span class="hljs-title function_ invoke__">default</span>());</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-12">&#x00a7;</a>
+              </div>
+              <p>We use the <code>AllQuery</code> which will pass all documents to the AggregationCollector.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">agg_res</span>: AggregationResults = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;AllQuery, &amp;collector).<span class="hljs-title function_ invoke__">unwrap</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">res</span>: Value = serde_json::<span class="hljs-title function_ invoke__">to_value</span>(agg_res)?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-13">&#x00a7;</a>
+              </div>
+              <h3 id="aggregation-result">Aggregation Result</h3>
+<p>The resulting structure deserializes in the same JSON format as elastic search.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">expected_res</span> = <span class="hljs-string">r#&quot;
+    {
+        &quot;group_by_stock&quot;:{
+            &quot;buckets&quot;:[
+                {&quot;average_price&quot;:{&quot;value&quot;:19.0},&quot;doc_count&quot;:1,&quot;key&quot;:&quot;few&quot;,&quot;to&quot;:1.0},
+                {&quot;average_price&quot;:{&quot;value&quot;:124.748},&quot;doc_count&quot;:10,&quot;from&quot;:1.0,&quot;key&quot;:&quot;some&quot;,&quot;to&quot;:10.0},
+                {&quot;average_price&quot;:{&quot;value&quot;:152.0},&quot;doc_count&quot;:2,&quot;from&quot;:10.0,&quot;key&quot;:&quot;many&quot;}
+            ]
+        }
+    }
+    &quot;#</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">expected_json</span>: Value = serde_json::<span class="hljs-title function_ invoke__">from_str</span>(expected_res)?;
+    <span class="hljs-built_in">assert_eq!</span>(expected_json, res);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-14">&#x00a7;</a>
+              </div>
+              <h3 id="request-2">Request 2</h3>
+<p>Now we are interested in the minimum price per category, so we create a bucket per
+category via <code>TermsAggregation</code>. We are interested in the highest minimum prices, and set the
+order of the buckets <code>&quot;order&quot;: { &quot;min_price&quot;: &quot;desc&quot; }</code> to be sorted by the the metric of
+the sub aggregation. (awesome)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">agg_req_str</span> = <span class="hljs-string">r#&quot;
+    {
+      &quot;min_price_per_category&quot;: {
+        &quot;aggs&quot;: {
+          &quot;min_price&quot;: { &quot;min&quot;: { &quot;field&quot;: &quot;price&quot; } }
+        },
+        &quot;terms&quot;: {
+          &quot;field&quot;: &quot;category&quot;,
+          &quot;min_doc_count&quot;: 1,
+          &quot;order&quot;: { &quot;min_price&quot;: &quot;desc&quot; }
+        }
+      }
+    } &quot;#</span>;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">agg_req</span>: Aggregations = serde_json::<span class="hljs-title function_ invoke__">from_str</span>(agg_req_str)?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">collector</span> = AggregationCollector::<span class="hljs-title function_ invoke__">from_aggs</span>(agg_req, <span class="hljs-built_in">Default</span>::<span class="hljs-title function_ invoke__">default</span>());
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">agg_res</span>: AggregationResults = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;AllQuery, &amp;collector).<span class="hljs-title function_ invoke__">unwrap</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">res</span>: Value = serde_json::<span class="hljs-title function_ invoke__">to_value</span>(agg_res)?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-15">&#x00a7;</a>
+              </div>
+              <p>Minimum price per category, sorted by minimum price descending</p>
+<p>As you can see, the starting prices for <code>Formalwear</code> are higher than <code>Casualwear</code>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">expected_res</span> = <span class="hljs-string">r#&quot;
+    {
+      &quot;min_price_per_category&quot;: {
+        &quot;buckets&quot;: [
+          { &quot;doc_count&quot;: 2, &quot;key&quot;: &quot;Womens Formalwear&quot;, &quot;min_price&quot;: { &quot;value&quot;: 270.0 } },
+          { &quot;doc_count&quot;: 2, &quot;key&quot;: &quot;Mens Formalwear&quot;, &quot;min_price&quot;: { &quot;value&quot;: 75.0 } },
+          { &quot;doc_count&quot;: 2, &quot;key&quot;: &quot;Mens Casualwear&quot;, &quot;min_price&quot;: { &quot;value&quot;: 49.99 } },
+          { &quot;doc_count&quot;: 2, &quot;key&quot;: &quot;Womens Footwear&quot;, &quot;min_price&quot;: { &quot;value&quot;: 42.0 } },
+          { &quot;doc_count&quot;: 2, &quot;key&quot;: &quot;Womens Casualwear&quot;, &quot;min_price&quot;: { &quot;value&quot;: 30.0 } },
+          { &quot;doc_count&quot;: 3, &quot;key&quot;: &quot;Mens Footwear&quot;, &quot;min_price&quot;: { &quot;value&quot;: 19.0 } }
+        ],
+        &quot;sum_other_doc_count&quot;: 0
+      }
+    }
+    &quot;#</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">expected_json</span>: Value = serde_json::<span class="hljs-title function_ invoke__">from_str</span>(expected_res)?;
+
+    <span class="hljs-built_in">assert_eq!</span>(expected_json, res);
+
+    <span class="hljs-title function_ invoke__">Ok</span>(())
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

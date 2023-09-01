@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Pre-tokenized text example</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="aggregation.html">
+                  aggregation.rs
+                </a>
+              
+                
+                <a class="source" href="basic_search.html">
+                  basic_search.rs
+                </a>
+              
+                
+                <a class="source" href="custom_collector.html">
+                  custom_collector.rs
+                </a>
+              
+                
+                <a class="source" href="custom_tokenizer.html">
+                  custom_tokenizer.rs
+                </a>
+              
+                
+                <a class="source" href="date_time_field.html">
+                  date_time_field.rs
+                </a>
+              
+                
+                <a class="source" href="deleting_updating_documents.html">
+                  deleting_updating_documents.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search.html">
+                  faceted_search.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search_with_tweaked_score.html">
+                  faceted_search_with_tweaked_score.rs
+                </a>
+              
+                
+                <a class="source" href="fuzzy_search.html">
+                  fuzzy_search.rs
+                </a>
+              
+                
+                <a class="source" href="index_from_multiple_threads.html">
+                  index_from_multiple_threads.rs
+                </a>
+              
+                
+                <a class="source" href="index_with_json.html">
+                  index_with_json.rs
+                </a>
+              
+                
+                <a class="source" href="integer_range_search.html">
+                  integer_range_search.rs
+                </a>
+              
+                
+                <a class="source" href="ip_field.html">
+                  ip_field.rs
+                </a>
+              
+                
+                <a class="source" href="iterating_docs_and_positions.html">
+                  iterating_docs_and_positions.rs
+                </a>
+              
+                
+                <a class="source" href="json_field.html">
+                  json_field.rs
+                </a>
+              
+                
+                <a class="source" href="phrase_prefix_search.html">
+                  phrase_prefix_search.rs
+                </a>
+              
+                
+                <a class="source" href="pre_tokenized_text.html">
+                  pre_tokenized_text.rs
+                </a>
+              
+                
+                <a class="source" href="snippet.html">
+                  snippet.rs
+                </a>
+              
+                
+                <a class="source" href="stop_words.html">
+                  stop_words.rs
+                </a>
+              
+                
+                <a class="source" href="warmer.html">
+                  warmer.rs
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-1">&#x00a7;</a>
+              </div>
+              <h1 id="pre-tokenized-text-example">Pre-tokenized text example</h1>
+<p>This example shows how to use pre-tokenized text. Sometimes you might
+want to index and search through text which is already split into
+tokens by some external tool.</p>
+<p>In this example we will:</p>
+<ul>
+<li>use tantivy tokenizer to create tokens and load them directly into tantivy,</li>
+<li>import tokenized text straight from json,</li>
+<li>perform a search on documents with pre-tokenized text</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">use</span> tantivy::collector::{Count, TopDocs};
+<span class="hljs-keyword">use</span> tantivy::query::TermQuery;
+<span class="hljs-keyword">use</span> tantivy::schema::*;
+<span class="hljs-keyword">use</span> tantivy::tokenizer::{PreTokenizedString, SimpleTokenizer, Token, TokenStream, Tokenizer};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, ReloadPolicy};
+<span class="hljs-keyword">use</span> tempfile::TempDir;
+
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">pre_tokenize_text</span>(text: &amp;<span class="hljs-type">str</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;Token&gt; {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">tokenizer</span> = SimpleTokenizer::<span class="hljs-title function_ invoke__">default</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">token_stream</span> = tokenizer.<span class="hljs-title function_ invoke__">token_stream</span>(text);
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">tokens</span> = <span class="hljs-built_in">vec!</span>[];
+    <span class="hljs-keyword">while</span> token_stream.<span class="hljs-title function_ invoke__">advance</span>() {
+        tokens.<span class="hljs-title function_ invoke__">push</span>(token_stream.<span class="hljs-title function_ invoke__">token</span>().<span class="hljs-title function_ invoke__">clone</span>());
+    }
+    tokens
+}
+
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">index_path</span> = TempDir::<span class="hljs-title function_ invoke__">new</span>()?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();
+
+    schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;title&quot;</span>, TEXT | STORED);
+    schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;body&quot;</span>, TEXT);
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_dir</span>(&amp;index_path, schema.<span class="hljs-title function_ invoke__">clone</span>())?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-2">&#x00a7;</a>
+              </div>
+              <p>We can create a document manually, by setting the fields
+one by one in a Document object.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;title&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">body</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;body&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">title_text</span> = <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">body_text</span> = <span class="hljs-string">&quot;He was an old man who fished alone in a skiff in the Gulf Stream&quot;</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-3">&#x00a7;</a>
+              </div>
+              <p>Content of our first document
+We create <code>PreTokenizedString</code> which contains original text and vector of tokens</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">title_tok</span> = PreTokenizedString {
+        text: String::<span class="hljs-title function_ invoke__">from</span>(title_text),
+        tokens: <span class="hljs-title function_ invoke__">pre_tokenize_text</span>(title_text),
+    };
+
+    <span class="hljs-built_in">println!</span>(
+        <span class="hljs-string">&quot;Original text: \&quot;{}\&quot; and tokens: {:?}&quot;</span>,
+        title_tok.text, title_tok.tokens
+    );
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">body_tok</span> = PreTokenizedString {
+        text: String::<span class="hljs-title function_ invoke__">from</span>(body_text),
+        tokens: <span class="hljs-title function_ invoke__">pre_tokenize_text</span>(body_text),
+    };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-4">&#x00a7;</a>
+              </div>
+              <p>Now lets create a document and add our <code>PreTokenizedString</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">old_man_doc</span> = doc!(title =&gt; title_tok, body =&gt; body_tok);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-5">&#x00a7;</a>
+              </div>
+              <p>… now let’s just add it to the IndexWriter</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(old_man_doc)?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-6">&#x00a7;</a>
+              </div>
+              <p>Pretokenized text can also be fed as JSON</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">short_man_json</span> = <span class="hljs-string">r#&quot;{
+        &quot;title&quot;:[{
+            &quot;text&quot;:&quot;The Old Man&quot;,
+            &quot;tokens&quot;:[
+                {&quot;offset_from&quot;:0,&quot;offset_to&quot;:3,&quot;position&quot;:0,&quot;text&quot;:&quot;The&quot;,&quot;position_length&quot;:1},
+                {&quot;offset_from&quot;:4,&quot;offset_to&quot;:7,&quot;position&quot;:1,&quot;text&quot;:&quot;Old&quot;,&quot;position_length&quot;:1},
+                {&quot;offset_from&quot;:8,&quot;offset_to&quot;:11,&quot;position&quot;:2,&quot;text&quot;:&quot;Man&quot;,&quot;position_length&quot;:1}
+            ]
+        }]
+    }&quot;#</span>;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">short_man_doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(short_man_json)?;
+
+    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(short_man_doc)?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-7">&#x00a7;</a>
+              </div>
+              <p>Let’s commit changes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">commit</span>()?;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-8">&#x00a7;</a>
+              </div>
+              <p>… and now is the time to query our index</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index
+        .<span class="hljs-title function_ invoke__">reader_builder</span>()
+        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommit)
+        .<span class="hljs-title function_ invoke__">try_into</span>()?;
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-9">&#x00a7;</a>
+              </div>
+              <p>We want to get documents with token “Man”, we will use TermQuery to do it
+Using PreTokenizedString means the tokens are stored as is avoiding stemming
+and lowercasing, which preserves full words in their original form</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">query</span> = TermQuery::<span class="hljs-title function_ invoke__">new</span>(
+        Term::<span class="hljs-title function_ invoke__">from_field_text</span>(title, <span class="hljs-string">&quot;Man&quot;</span>),
+        IndexRecordOption::Basic,
+    );
+
+    <span class="hljs-keyword">let</span> (top_docs, count) = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;(TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">2</span>), Count))?;
+
+    <span class="hljs-built_in">assert_eq!</span>(count, <span class="hljs-number">2</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-10">&#x00a7;</a>
+              </div>
+              <p>Now let’s print out the results.
+Note that the tokens are not stored along with the original text
+in the document store</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-title function_ invoke__">for</span> (_score, doc_address) <span class="hljs-keyword">in</span> top_docs {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Document: {}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-11">&#x00a7;</a>
+              </div>
+              <p>In contrary to the previous query, when we search for the “man” term we
+should get no results, as it’s not one of the indexed tokens. SimpleTokenizer
+only splits text on whitespace / punctuation.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">query</span> = TermQuery::<span class="hljs-title function_ invoke__">new</span>(
+        Term::<span class="hljs-title function_ invoke__">from_field_text</span>(title, <span class="hljs-string">&quot;man&quot;</span>),
+        IndexRecordOption::Basic,
+    );
+
+    <span class="hljs-keyword">let</span> (_top_docs, count) = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;(TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">2</span>), Count))?;
+
+    <span class="hljs-built_in">assert_eq!</span>(count, <span class="hljs-number">0</span>);
+
+    <span class="hljs-title function_ invoke__">Ok</span>(())
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -11,6 +11,119 @@
   <div id="container">
     <div id="background"></div>
     
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="aggregation.html">
+                  aggregation.rs
+                </a>
+              
+                
+                <a class="source" href="basic_search.html">
+                  basic_search.rs
+                </a>
+              
+                
+                <a class="source" href="custom_collector.html">
+                  custom_collector.rs
+                </a>
+              
+                
+                <a class="source" href="custom_tokenizer.html">
+                  custom_tokenizer.rs
+                </a>
+              
+                
+                <a class="source" href="date_time_field.html">
+                  date_time_field.rs
+                </a>
+              
+                
+                <a class="source" href="deleting_updating_documents.html">
+                  deleting_updating_documents.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search.html">
+                  faceted_search.rs
+                </a>
+              
+                
+                <a class="source" href="faceted_search_with_tweaked_score.html">
+                  faceted_search_with_tweaked_score.rs
+                </a>
+              
+                
+                <a class="source" href="fuzzy_search.html">
+                  fuzzy_search.rs
+                </a>
+              
+                
+                <a class="source" href="index_from_multiple_threads.html">
+                  index_from_multiple_threads.rs
+                </a>
+              
+                
+                <a class="source" href="index_with_json.html">
+                  index_with_json.rs
+                </a>
+              
+                
+                <a class="source" href="integer_range_search.html">
+                  integer_range_search.rs
+                </a>
+              
+                
+                <a class="source" href="ip_field.html">
+                  ip_field.rs
+                </a>
+              
+                
+                <a class="source" href="iterating_docs_and_positions.html">
+                  iterating_docs_and_positions.rs
+                </a>
+              
+                
+                <a class="source" href="json_field.html">
+                  json_field.rs
+                </a>
+              
+                
+                <a class="source" href="phrase_prefix_search.html">
+                  phrase_prefix_search.rs
+                </a>
+              
+                
+                <a class="source" href="pre_tokenized_text.html">
+                  pre_tokenized_text.rs
+                </a>
+              
+                
+                <a class="source" href="snippet.html">
+                  snippet.rs
+                </a>
+              
+                
+                <a class="source" href="stop_words.html">
+                  stop_words.rs
+                </a>
+              
+                
+                <a class="source" href="warmer.html">
+                  warmer.rs
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
     <ul class="sections">
         
         
@@ -18,8 +131,8 @@
         <li id="section-1">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-1">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-1">&#x00a7;</a>
               </div>
               <h1 id="snippet-example">Snippet example</h1>
 <p>This example shows how to return a representative snippet of
@@ -35,8 +148,8 @@ The keyword searched by the user are highlighted with a <code>&lt;b&gt;</code> t
         <li id="section-2">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-2">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-2">&#x00a7;</a>
               </div>
               <hr>
 
@@ -48,23 +161,20 @@ The keyword searched by the user are highlighted with a <code>&lt;b&gt;</code> t
         <li id="section-3">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-3">&#x00a7;</a>
               </div>
               <p>Importing tantivy…</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-meta">#[macro_use]</span>
-<span class="hljs-keyword">extern</span> <span class="hljs-keyword">crate</span> tantivy;
-<span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::Index;
-<span class="hljs-keyword">use</span> tantivy::{Snippet, SnippetGenerator};
-<span class="hljs-keyword">use</span> tempdir::TempDir;
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, Snippet, SnippetGenerator};
+<span class="hljs-keyword">use</span> tempfile::TempDir;
 
-<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() -&gt; tantivy::<span class="hljs-built_in">Result</span>&lt;()&gt; {</pre></div></div>
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
         </li>
         
@@ -72,15 +182,15 @@ The keyword searched by the user are highlighted with a <code>&lt;b&gt;</code> t
         <li id="section-4">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-4">&#x00a7;</a>
               </div>
               <p>Let’s create a temporary directory for the
 sake of this example</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> index_path = TempDir::new(<span class="hljs-string">"tantivy_example_dir"</span>)?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">index_path</span> = TempDir::<span class="hljs-title function_ invoke__">new</span>()?;</pre></div></div>
             
         </li>
         
@@ -88,17 +198,17 @@ sake of this example</p>
         <li id="section-5">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-5">&#x00a7;</a>
               </div>
               <h1 id="defining-the-schema">Defining the schema</h1>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> schema_builder = Schema::builder();
-    <span class="hljs-keyword">let</span> title = schema_builder.add_text_field(<span class="hljs-string">"title"</span>, TEXT | STORED);
-    <span class="hljs-keyword">let</span> body = schema_builder.add_text_field(<span class="hljs-string">"body"</span>, TEXT | STORED);
-    <span class="hljs-keyword">let</span> schema = schema_builder.build();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;title&quot;</span>, TEXT | STORED);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">body</span> = schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;body&quot;</span>, TEXT | STORED);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();</pre></div></div>
             
         </li>
         
@@ -106,16 +216,16 @@ sake of this example</p>
         <li id="section-6">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-6">&#x00a7;</a>
               </div>
               <h1 id="indexing-documents">Indexing documents</h1>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> index = Index::create_in_dir(&amp;index_path, schema.clone())?;
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_dir</span>(&amp;index_path, schema)?;
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> index_writer = index.writer(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
             
         </li>
         
@@ -123,24 +233,24 @@ sake of this example</p>
         <li id="section-7">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-7">&#x00a7;</a>
               </div>
               <p>we’ll only need one doc for this example.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    index_writer.add_document(doc!(
-    title =&gt; <span class="hljs-string">"Of Mice and Men"</span>,
-    body =&gt; <span class="hljs-string">"A few miles south of Soledad, the Salinas River drops in close to the hillside \
+            <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
+    title =&gt; <span class="hljs-string">&quot;Of Mice and Men&quot;</span>,
+    body =&gt; <span class="hljs-string">&quot;A few miles south of Soledad, the Salinas River drops in close to the hillside \
             bank and runs deep and green. The water is warm too, for it has slipped twinkling \
             over the yellow sands in the sunlight before reaching the narrow pool. On one \
             side of the river the golden foothill slopes curve up to the strong and rocky \
             Gabilan Mountains, but on the valley side the water is lined with trees—willows \
             fresh and green with every spring, carrying in their lower leaf junctures the \
             debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
-            limbs and branches that arch over the pool"</span>
-    ));</pre></div></div>
+            limbs and branches that arch over the pool&quot;</span>
+    ))?;</pre></div></div>
             
         </li>
         
@@ -148,49 +258,52 @@ sake of this example</p>
         <li id="section-8">
             <div class="annotation">
               
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+              <div class="sswrap ">
+                <a class="ss" href="#section-8">&#x00a7;</a>
               </div>
               <p>…</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    index_writer.commit()?;
+            <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">commit</span>()?;
 
-    <span class="hljs-keyword">let</span> reader = index.reader()?;
-    <span class="hljs-keyword">let</span> searcher = reader.searcher();
-    <span class="hljs-keyword">let</span> query_parser = QueryParser::for_index(&amp;index, <span class="hljs-built_in">vec!</span>[title, body]);
-    <span class="hljs-keyword">let</span> query = query_parser.parse_query(<span class="hljs-string">"sycamore spring"</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index.<span class="hljs-title function_ invoke__">reader</span>()?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">query_parser</span> = QueryParser::<span class="hljs-title function_ invoke__">for_index</span>(&amp;index, <span class="hljs-built_in">vec!</span>[title, body]);
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">query</span> = query_parser.<span class="hljs-title function_ invoke__">parse_query</span>(<span class="hljs-string">&quot;sycamore spring&quot;</span>)?;
 
-    <span class="hljs-keyword">let</span> top_docs = searcher.search(&amp;query, &amp;TopDocs::with_limit(<span class="hljs-number">10</span>))?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">top_docs</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">10</span>))?;
 
-    <span class="hljs-keyword">let</span> snippet_generator = SnippetGenerator::create(&amp;searcher, &amp;*query, body)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">snippet_generator</span> = SnippetGenerator::<span class="hljs-title function_ invoke__">create</span>(&amp;searcher, &amp;*query, body)?;
 
-    <span class="hljs-keyword">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {
-        <span class="hljs-keyword">let</span> doc = searcher.doc(doc_address)?;
-        <span class="hljs-keyword">let</span> snippet = snippet_generator.snippet_from_doc(&amp;doc);
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"Document score {}:"</span>, score);
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"title: {}"</span>, doc.get_first(title).unwrap().text().unwrap());
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"snippet: {}"</span>, snippet.to_html());
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"custom highlighting: {}"</span>, highlight(snippet));
+    <span class="hljs-title function_ invoke__">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">snippet</span> = snippet_generator.<span class="hljs-title function_ invoke__">snippet_from_doc</span>(&amp;doc);
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Document score {score}:&quot;</span>);
+        <span class="hljs-built_in">println!</span>(
+            <span class="hljs-string">&quot;title: {}&quot;</span>,
+            doc.<span class="hljs-title function_ invoke__">get_first</span>(title).<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">as_text</span>().<span class="hljs-title function_ invoke__">unwrap</span>()
+        );
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;snippet: {}&quot;</span>, snippet.<span class="hljs-title function_ invoke__">to_html</span>());
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;custom highlighting: {}&quot;</span>, <span class="hljs-title function_ invoke__">highlight</span>(snippet));
     }
 
-    <span class="hljs-literal">Ok</span>(())
+    <span class="hljs-title function_ invoke__">Ok</span>(())
 }
 
-<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">highlight</span></span>(snippet: Snippet) -&gt; <span class="hljs-built_in">String</span> {
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> result = <span class="hljs-built_in">String</span>::new();
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> start_from = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">fn</span> <span class="hljs-title function_">highlight</span>(snippet: Snippet) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">String</span> {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">result</span> = String::<span class="hljs-title function_ invoke__">new</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">start_from</span> = <span class="hljs-number">0</span>;
 
-    <span class="hljs-keyword">for</span> (start, end) <span class="hljs-keyword">in</span> snippet.highlighted().iter().map(|h| h.bounds()) {
-        result.push_str(&amp;snippet.fragments()[start_from..start]);
-        result.push_str(<span class="hljs-string">" --&gt; "</span>);
-        result.push_str(&amp;snippet.fragments()[start..end]);
-        result.push_str(<span class="hljs-string">" &lt;-- "</span>);
-        start_from = end;
+    <span class="hljs-keyword">for</span> <span class="hljs-variable">fragment_range</span> <span class="hljs-keyword">in</span> snippet.<span class="hljs-title function_ invoke__">highlighted</span>() {
+        result.<span class="hljs-title function_ invoke__">push_str</span>(&amp;snippet.<span class="hljs-title function_ invoke__">fragment</span>()[start_from..fragment_range.start]);
+        result.<span class="hljs-title function_ invoke__">push_str</span>(<span class="hljs-string">&quot; --&gt; &quot;</span>);
+        result.<span class="hljs-title function_ invoke__">push_str</span>(&amp;snippet.<span class="hljs-title function_ invoke__">fragment</span>()[fragment_range.<span class="hljs-title function_ invoke__">clone</span>()]);
+        result.<span class="hljs-title function_ invoke__">push_str</span>(<span class="hljs-string">&quot; &lt;-- &quot;</span>);
+        start_from = fragment_range.end;
     }
 
-    result.push_str(&amp;snippet.fragments()[start_from..]);
+    result.<span class="hljs-title function_ invoke__">push_str</span>(&amp;snippet.<span class="hljs-title function_ invoke__">fragment</span>()[start_from..]);
     result
 }</pre></div></div>
             

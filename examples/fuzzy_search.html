@@ -145,6 +145,7 @@ tantivy.</p>
 <li>search for the best document matching a basic query</li>
 <li>retrieve the best document’s original content.</li>
 </ul>
+<hr>
 
             </div>
             
@@ -157,25 +158,12 @@ tantivy.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-2">&#x00a7;</a>
               </div>
-              <hr>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-3">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-3">&#x00a7;</a>
-              </div>
               <p>Importing tantivy…</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
-<span class="hljs-keyword">use</span> tantivy::query::QueryParser;
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::{Count, TopDocs};
+<span class="hljs-keyword">use</span> tantivy::query::FuzzyTermQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::{doc, Index, ReloadPolicy};
 <span class="hljs-keyword">use</span> tempfile::TempDir;
@@ -185,11 +173,11 @@ tantivy.</p>
         </li>
         
         
-        <li id="section-4">
+        <li id="section-3">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-4">&#x00a7;</a>
+                <a class="ss" href="#section-3">&#x00a7;</a>
               </div>
               <p>Let’s create a temporary directory for the
 sake of this example</p>
@@ -201,11 +189,11 @@ sake of this example</p>
         </li>
         
         
-        <li id="section-5">
+        <li id="section-4">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-5">&#x00a7;</a>
+                <a class="ss" href="#section-4">&#x00a7;</a>
               </div>
               <h1 id="defining-the-schema">Defining the schema</h1>
 <p>The Tantivy index requires a very strict schema.
@@ -218,11 +206,11 @@ be indexed”.</p>
         </li>
         
         
-        <li id="section-6">
+        <li id="section-5">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-6">&#x00a7;</a>
+                <a class="ss" href="#section-5">&#x00a7;</a>
               </div>
               <p>First we need to define a schema …</p>
 
@@ -233,11 +221,11 @@ be indexed”.</p>
         </li>
         
         
-        <li id="section-7">
+        <li id="section-6">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-7">&#x00a7;</a>
+                <a class="ss" href="#section-6">&#x00a7;</a>
               </div>
               <p>Our first field is title.
 We want full-text search for it, and we also want
@@ -253,37 +241,18 @@ documents that were selected during the search phase.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;title&quot;</span>, TEXT | STORED);</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-8">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-8">&#x00a7;</a>
-              </div>
-              <p>Our second field is body.
-We want full-text search for it, but we do not
-need to be able to be able to retrieve it
-for our application.</p>
-<p>We can make our index lighter by omitting the <code>STORED</code> flag.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;body&quot;</span>, TEXT);
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = schema_builder.<span class="hljs-title function_ invoke__">add_text_field</span>(<span class="hljs-string">&quot;title&quot;</span>, TEXT | STORED);
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();</pre></div></div>
             
         </li>
         
         
-        <li id="section-9">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-9">&#x00a7;</a>
+                <a class="ss" href="#section-7">&#x00a7;</a>
               </div>
               <h1 id="indexing-documents">Indexing documents</h1>
 <p>Let’s create a brand new index.</p>
@@ -297,11 +266,11 @@ with our schema in the directory.</p>
         </li>
         
         
-        <li id="section-10">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-10">&#x00a7;</a>
+                <a class="ss" href="#section-8">&#x00a7;</a>
               </div>
               <p>To insert a document we will need an index writer.
 There must be only one writer at a time.
@@ -318,11 +287,11 @@ throughput, but 50 MB is already plenty.</p>
         </li>
         
         
-        <li id="section-11">
+        <li id="section-9">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-11">&#x00a7;</a>
+                <a class="ss" href="#section-9">&#x00a7;</a>
               </div>
               <p>Let’s index our documents!
 We first need a handle on the title and the body field.</p>
@@ -332,117 +301,38 @@ We first need a handle on the title and the body field.</p>
         </li>
         
         
-        <li id="section-12">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-12">&#x00a7;</a>
+                <a class="ss" href="#section-10">&#x00a7;</a>
               </div>
               <h3 id="adding-documents">Adding documents</h3>
-<p>We can create a document manually, by setting the fields
-one by one in a Document object.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;title&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">body</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;body&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
-
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">old_man_doc</span> = Document::<span class="hljs-title function_ invoke__">default</span>();
-    old_man_doc.<span class="hljs-title function_ invoke__">add_text</span>(title, <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>);
-    old_man_doc.<span class="hljs-title function_ invoke__">add_text</span>(
-        body,
-        <span class="hljs-string">&quot;He was an old man who fished alone in a skiff in the Gulf Stream and he had gone \
-         eighty-four days now without taking a fish.&quot;</span>,
-    );</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-13">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-13">&#x00a7;</a>
-              </div>
-              <p>… and add it to the <code>IndexWriter</code>.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(old_man_doc)?;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-14">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-14">&#x00a7;</a>
-              </div>
-              <p>For convenience, tantivy also comes with a macro to
-reduce the boilerplate above.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
-    title =&gt; <span class="hljs-string">&quot;Of Mice and Men&quot;</span>,
-    body =&gt; <span class="hljs-string">&quot;A few miles south of Soledad, the Salinas River drops in close to the hillside \
-            bank and runs deep and green. The water is warm too, for it has slipped twinkling \
-            over the yellow sands in the sunlight before reaching the narrow pool. On one \
-            side of the river the golden foothill slopes curve up to the strong and rocky \
-            Gabilan Mountains, but on the valley side the water is lined with trees—willows \
-            fresh and green with every spring, carrying in their lower leaf junctures the \
-            debris of the winter’s flooding; and sycamores with mottled, white, recumbent \
-            limbs and branches that arch over the pool&quot;</span>
-    ))?;</pre></div></div>
+        title =&gt; <span class="hljs-string">&quot;The Name of the Wind&quot;</span>,
+    ))?;
+    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
+        title =&gt; <span class="hljs-string">&quot;The Diary of Muadib&quot;</span>,
+    ))?;
+    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
+        title =&gt; <span class="hljs-string">&quot;A Dairy Cow&quot;</span>,
+    ))?;
+    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
+        title =&gt; <span class="hljs-string">&quot;The Diary of a Young Girl&quot;</span>,
+    ))?;
+    index_writer.<span class="hljs-title function_ invoke__">commit</span>()?;</pre></div></div>
             
         </li>
         
         
-        <li id="section-15">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-15">&#x00a7;</a>
-              </div>
-              <p>Multivalued field just need to be repeated.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
-    title =&gt; <span class="hljs-string">&quot;Frankenstein&quot;</span>,
-    title =&gt; <span class="hljs-string">&quot;The Modern Prometheus&quot;</span>,
-    body =&gt; <span class="hljs-string">&quot;You will rejoice to hear that no disaster has accompanied the commencement of an \
-             enterprise which you have regarded with such evil forebodings.  I arrived here \
-             yesterday, and my first task is to assure my dear sister of my welfare and \
-             increasing confidence in the success of my undertaking.&quot;</span>
-    ))?;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-16">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-16">&#x00a7;</a>
-              </div>
-              <p>This is an example, so we will only index 3 documents
-here. You can check out tantivy’s tutorial to index
-the English wikipedia. Tantivy’s indexing is rather fast.
-Indexing 5 million articles of the English wikipedia takes
-around 3 minutes on my computer!</p>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-17">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-17">&#x00a7;</a>
+                <a class="ss" href="#section-11">&#x00a7;</a>
               </div>
               <h3 id="committing">Committing</h3>
 <p>At this point our documents are not searchable.</p>
@@ -459,11 +349,11 @@ the existence of new documents.</p>
         </li>
         
         
-        <li id="section-18">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-18">&#x00a7;</a>
+                <a class="ss" href="#section-12">&#x00a7;</a>
               </div>
               <p>If <code>.commit()</code> returns correctly, then all of the
 documents that have been added are guaranteed to be
@@ -477,11 +367,11 @@ commit.</p>
         </li>
         
         
-        <li id="section-19">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-19">&#x00a7;</a>
+                <a class="ss" href="#section-13">&#x00a7;</a>
               </div>
               <h1 id="searching">Searching</h1>
 <h3 id="searcher">Searcher</h3>
@@ -503,11 +393,11 @@ will reload the index automatically after each commit.</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-20">&#x00a7;</a>
+                <a class="ss" href="#section-14">&#x00a7;</a>
               </div>
               <p>We now need to acquire a searcher.</p>
 <p>A searcher points to a snapshotted, immutable version of the index.</p>
@@ -525,119 +415,60 @@ and release it right after your query is finished.</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-21">&#x00a7;</a>
+                <a class="ss" href="#section-15">&#x00a7;</a>
               </div>
-              <h3 id="query">Query</h3>
+              <h3 id="fuzzytermquery">FuzzyTermQuery</h3>
 
             </div>
+            
+            <div class="content"><div class='highlight'><pre>    {
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">term</span> = Term::<span class="hljs-title function_ invoke__">from_field_text</span>(title, <span class="hljs-string">&quot;Diary&quot;</span>);
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">query</span> = FuzzyTermQuery::<span class="hljs-title function_ invoke__">new</span>(term, <span class="hljs-number">2</span>, <span class="hljs-literal">true</span>);
+
+        <span class="hljs-keyword">let</span> (top_docs, count) = searcher
+            .<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;(TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">5</span>), Count))
+            .<span class="hljs-title function_ invoke__">unwrap</span>();
+        <span class="hljs-built_in">assert_eq!</span>(count, <span class="hljs-number">3</span>);
+        <span class="hljs-built_in">assert_eq!</span>(top_docs.<span class="hljs-title function_ invoke__">len</span>(), <span class="hljs-number">3</span>);
+        <span class="hljs-title function_ invoke__">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;</pre></div></div>
             
         </li>
         
         
-        <li id="section-22">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-22">&#x00a7;</a>
+                <a class="ss" href="#section-16">&#x00a7;</a>
               </div>
-              <p>The query parser can interpret human queries.
-Here, if the user does not specify which
-field they want to search, tantivy will search
-in both title and body.</p>
+              <p>Note that the score is not lower for the fuzzy hit.
+There’s an issue open for that: <a href="https://github.com/quickwit-oss/tantivy/issues/563">https://github.com/quickwit-oss/tantivy/issues/563</a></p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">query_parser</span> = QueryParser::<span class="hljs-title function_ invoke__">for_index</span>(&amp;index, <span class="hljs-built_in">vec!</span>[title, body]);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;score {score:?} doc {}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));</pre></div></div>
             
         </li>
         
         
-        <li id="section-23">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-23">&#x00a7;</a>
+                <a class="ss" href="#section-17">&#x00a7;</a>
               </div>
-              <p><code>QueryParser</code> may fail if the query is not in the right
-format. For user facing applications, this can be a problem.
-A ticket has been opened regarding this problem.</p>
+              <p>score 1.0 doc {“title”:[“The Diary of Muadib”]}</p>
+<p>score 1.0 doc {“title”:[“The Diary of a Young Girl”]}</p>
+<p>score 1.0 doc {“title”:[“A Dairy Cow”]}</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">query</span> = query_parser.<span class="hljs-title function_ invoke__">parse_query</span>(<span class="hljs-string">&quot;sea whale&quot;</span>)?;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-24">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-24">&#x00a7;</a>
-              </div>
-              <p>A query defines a set of documents, as
-well as the way they should be scored.</p>
-<p>A query created by the query parser is scored according
-to a metric called Tf-Idf, and will consider
-any document matching at least one of our terms.</p>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-25">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-25">&#x00a7;</a>
-              </div>
-              <h3 id="collectors">Collectors</h3>
-<p>We are not interested in all of the documents but
-only in the top 10. Keeping track of our top 10 best documents
-is the role of the <code>TopDocs</code> collector.</p>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-26">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-26">&#x00a7;</a>
-              </div>
-              <p>We can now perform our query.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">top_docs</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">10</span>))?;</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-27">
-            <div class="annotation">
-              
-              <div class="sswrap ">
-                <a class="ss" href="#section-27">&#x00a7;</a>
-              </div>
-              <p>The actual documents still need to be
-retrieved from Tantivy’s store.</p>
-<p>Since the body field was not configured as stored,
-the document returned will only contain
-a title.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-title function_ invoke__">for</span> (_score, doc_address) <span class="hljs-keyword">in</span> top_docs {
-        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));
+            <div class="content"><div class='highlight'><pre>        }
     }
 
     <span class="hljs-title function_ invoke__">Ok</span>(())
