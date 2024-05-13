@@ -60,6 +60,21 @@
                 </a>
               
                 
+                <a class="source" href="fuzzy_search.html">
+                  fuzzy_search.rs
+                </a>
+              
+                
+                <a class="source" href="index_from_multiple_threads.html">
+                  index_from_multiple_threads.rs
+                </a>
+              
+                
+                <a class="source" href="index_with_json.html">
+                  index_with_json.rs
+                </a>
+              
+                
                 <a class="source" href="integer_range_search.html">
                   integer_range_search.rs
                 </a>
@@ -80,8 +95,8 @@
                 </a>
               
                 
-                <a class="source" href="multiple_producer.html">
-                  multiple_producer.rs
+                <a class="source" href="phrase_prefix_search.html">
+                  phrase_prefix_search.rs
                 </a>
               
                 
@@ -102,11 +117,6 @@
                 
                 <a class="source" href="warmer.html">
                   warmer.rs
-                </a>
-              
-                
-                <a class="source" href="working_with_json.html">
-                  working_with_json.rs
                 </a>
               
             </div>
@@ -355,7 +365,7 @@ other threads.</p>
             <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer_wlock</span> = index_writer.<span class="hljs-title function_ invoke__">write</span>().<span class="hljs-title function_ invoke__">unwrap</span>();
             index_writer_wlock.<span class="hljs-title function_ invoke__">commit</span>()?
         };
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;committed with opstamp {}&quot;</span>, opstamp);
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;committed with opstamp {opstamp}&quot;</span>);
         thread::<span class="hljs-title function_ invoke__">sleep</span>(Duration::<span class="hljs-title function_ invoke__">from_millis</span>(<span class="hljs-number">500</span>));
     }
 
