@@ -143,6 +143,9 @@ its term frequency, and accessing its positions.</p>
 
             </div>
             
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">use</span> tantivy::postings::Postings;</pre></div></div>
+            
         </li>
         
         
@@ -170,7 +173,7 @@ its term frequency, and accessing its positions.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, DocSet, Index, Postings, TERMINATED};
+<span class="hljs-keyword">use</span> tantivy::{doc, DocSet, Index, IndexWriter, TERMINATED};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -209,7 +212,7 @@ field. <code>TEXT</code> precisely does this.</p>
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">50_000_000</span>)?;
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(title =&gt; <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>))?;
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(title =&gt; <span class="hljs-string">&quot;Of Mice and Men&quot;</span>))?;
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(title =&gt; <span class="hljs-string">&quot;The modern Promotheus&quot;</span>))?;

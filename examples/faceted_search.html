@@ -167,7 +167,7 @@ classifications include the facet.</li>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::FacetCollector;
 <span class="hljs-keyword">use</span> tantivy::query::{AllQuery, TermQuery};
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -206,7 +206,7 @@ classifications include the facet.</li>
     <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">30_000_000</span>)?;</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">30_000_000</span>)?;</pre></div></div>
             
         </li>
         

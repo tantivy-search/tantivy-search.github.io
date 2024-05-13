@@ -146,7 +146,7 @@
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, ReloadPolicy, <span class="hljs-type">Result</span>};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter, ReloadPolicy, <span class="hljs-type">Result</span>};
 <span class="hljs-keyword">use</span> tempfile::TempDir;
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;()&gt; {
@@ -162,7 +162,7 @@
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_dir</span>(&amp;index_path, schema)?;
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
 
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
     title =&gt; <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>,
@@ -208,7 +208,7 @@
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index
         .<span class="hljs-title function_ invoke__">reader_builder</span>()
-        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommit)
+        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommitWithDelay)
         .<span class="hljs-title function_ invoke__">try_into</span>()?;
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();
@@ -237,8 +237,12 @@ but not “in the Gulf Stream”.</p>
     <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">titles</span> = top_docs
         .<span class="hljs-title function_ invoke__">into_iter</span>()
         .<span class="hljs-title function_ invoke__">map</span>(|(_score, doc_address)| {
-            <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
-            <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = doc.<span class="hljs-title function_ invoke__">get_first</span>(title).<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">as_text</span>().<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">to_owned</span>();
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = searcher.doc::&lt;TantivyDocument&gt;(doc_address)?;
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = doc
+                .<span class="hljs-title function_ invoke__">get_first</span>(title)
+                .<span class="hljs-title function_ invoke__">and_then</span>(|v| v.<span class="hljs-title function_ invoke__">as_str</span>())
+                .<span class="hljs-title function_ invoke__">unwrap</span>()
+                .<span class="hljs-title function_ invoke__">to_owned</span>();
             <span class="hljs-title function_ invoke__">Ok</span>(title)
         })
         .collect::&lt;<span class="hljs-type">Result</span>&lt;<span class="hljs-type">Vec</span>&lt;_&gt;&gt;&gt;()?;

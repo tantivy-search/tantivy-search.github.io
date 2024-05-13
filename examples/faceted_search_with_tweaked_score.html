@@ -151,7 +151,7 @@ tantivy.</p>
 <span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::BooleanQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, DocId, Index, Score, SegmentReader};
+<span class="hljs-keyword">use</span> tantivy::{doc, DocId, Index, IndexWriter, Score, SegmentReader};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {
     <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">schema_builder</span> = Schema::<span class="hljs-title function_ invoke__">builder</span>();
@@ -162,7 +162,7 @@ tantivy.</p>
     <span class="hljs-keyword">let</span> <span class="hljs-variable">schema</span> = schema_builder.<span class="hljs-title function_ invoke__">build</span>();
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">30_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">30_000_000</span>)?;
 
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
         title =&gt; <span class="hljs-string">&quot;Fried egg&quot;</span>,
@@ -256,11 +256,10 @@ tantivy.</p>
             .<span class="hljs-title function_ invoke__">iter</span>()
             .<span class="hljs-title function_ invoke__">map</span>(|(_, doc_id)| {
                 searcher
-                    .<span class="hljs-title function_ invoke__">doc</span>(*doc_id)
+                    .doc::&lt;TantivyDocument&gt;(*doc_id)
                     .<span class="hljs-title function_ invoke__">unwrap</span>()
                     .<span class="hljs-title function_ invoke__">get_first</span>(title)
-                    .<span class="hljs-title function_ invoke__">unwrap</span>()
-                    .<span class="hljs-title function_ invoke__">as_text</span>()
+                    .<span class="hljs-title function_ invoke__">and_then</span>(|v| v.<span class="hljs-title function_ invoke__">as_str</span>())
                     .<span class="hljs-title function_ invoke__">unwrap</span>()
                     .<span class="hljs-title function_ invoke__">to_owned</span>()
             })

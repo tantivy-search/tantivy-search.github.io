@@ -145,7 +145,7 @@ default query parser field.</p>
 <span class="hljs-keyword">use</span> tantivy::collector::{Count, TopDocs};
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::{Schema, FAST, STORED, STRING, TEXT};
-<span class="hljs-keyword">use</span> tantivy::Index;
+<span class="hljs-keyword">use</span> tantivy::{Index, IndexWriter, TantivyDocument};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -183,8 +183,9 @@ default query parser field.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema.<span class="hljs-title function_ invoke__">clone</span>());
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(
+        &amp;schema,
         <span class="hljs-string">r#&quot;{
         &quot;timestamp&quot;: &quot;2022-02-22T23:20:50.53Z&quot;,
         &quot;event_type&quot;: &quot;click&quot;,
@@ -196,7 +197,8 @@ default query parser field.</p>
     }&quot;#</span>,
     )?;
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc)?;
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(
+        &amp;schema,
         <span class="hljs-string">r#&quot;{
         &quot;timestamp&quot;: &quot;2022-02-22T23:20:51.53Z&quot;,
         &quot;event_type&quot;: &quot;click&quot;,

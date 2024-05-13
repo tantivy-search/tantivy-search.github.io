@@ -177,7 +177,7 @@ tantivy.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, ReloadPolicy};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter, ReloadPolicy};
 <span class="hljs-keyword">use</span> tempfile::TempDir;
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
@@ -313,7 +313,7 @@ throughput, but 50 MB is already plenty.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
             
         </li>
         
@@ -347,7 +347,7 @@ one by one in a Document object.</p>
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;title&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
     <span class="hljs-keyword">let</span> <span class="hljs-variable">body</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;body&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">old_man_doc</span> = Document::<span class="hljs-title function_ invoke__">default</span>();
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">old_man_doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">default</span>();
     old_man_doc.<span class="hljs-title function_ invoke__">add_text</span>(title, <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>);
     old_man_doc.<span class="hljs-title function_ invoke__">add_text</span>(
         body,
@@ -497,7 +497,7 @@ will reload the index automatically after each commit.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index
         .<span class="hljs-title function_ invoke__">reader_builder</span>()
-        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommit)
+        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommitWithDelay)
         .<span class="hljs-title function_ invoke__">try_into</span>()?;</pre></div></div>
             
         </li>
@@ -636,9 +636,35 @@ a title.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-title function_ invoke__">for</span> (_score, doc_address) <span class="hljs-keyword">in</span> top_docs {
-        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));
-    }
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span>: TantivyDocument = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, retrieved_doc.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema));
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-28">&#x00a7;</a>
+              </div>
+              <p>We can also get an explanation to understand
+how a found document got its score.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">query</span> = query_parser.<span class="hljs-title function_ invoke__">parse_query</span>(<span class="hljs-string">&quot;title:sea^20 body:whale^70&quot;</span>)?;
+
+    <span class="hljs-keyword">let</span> (_score, doc_address) = searcher
+        .<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">1</span>))?
+        .<span class="hljs-title function_ invoke__">into_iter</span>()
+        .<span class="hljs-title function_ invoke__">next</span>()
+        .<span class="hljs-title function_ invoke__">unwrap</span>();
+
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">explanation</span> = query.<span class="hljs-title function_ invoke__">explain</span>(&amp;searcher, doc_address)?;
+
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, explanation.<span class="hljs-title function_ invoke__">to_pretty_json</span>());
 
     <span class="hljs-title function_ invoke__">Ok</span>(())
 }</pre></div></div>

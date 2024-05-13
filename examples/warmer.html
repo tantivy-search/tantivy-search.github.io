@@ -148,11 +148,12 @@
 <span class="hljs-keyword">use</span> std::sync::{Arc, RwLock, Weak};
 
 <span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
+<span class="hljs-keyword">use</span> tantivy::index::SegmentId;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::{Schema, FAST, TEXT};
 <span class="hljs-keyword">use</span> tantivy::{
-    doc, DocAddress, DocId, Index, Opstamp, Searcher, SearcherGeneration, SegmentId, SegmentReader,
-    Warmer,
+    doc, DocAddress, DocId, Index, IndexWriter, Opstamp, Searcher, SearcherGeneration,
+    SegmentReader, Warmer,
 };</pre></div></div>
             
         </li>
@@ -336,7 +337,7 @@ This map represents a map (ProductId -&gt; Price)</p>
     <span class="hljs-keyword">const</span> SNEAKERS: ProductId = <span class="hljs-number">23222</span>;
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">writer</span> = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">10_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">15_000_000</span>)?;
     writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(product_id=&gt;OLIVE_OIL, text=&gt;<span class="hljs-string">&quot;cooking olive oil from greece&quot;</span>))?;
     writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(product_id=&gt;GLOVES, text=&gt;<span class="hljs-string">&quot;kitchen gloves, perfect for cooking&quot;</span>))?;
     writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(product_id=&gt;SNEAKERS, text=&gt;<span class="hljs-string">&quot;uber sweet sneakers&quot;</span>))?;

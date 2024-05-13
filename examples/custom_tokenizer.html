@@ -144,7 +144,7 @@ by creating a custom <code>NgramTokenizer</code>.</p>
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::tokenizer::NgramTokenizer;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -260,7 +260,7 @@ this will store tokens of 3 characters each</p>
             
             <div class="content"><div class='highlight'><pre>    index
         .<span class="hljs-title function_ invoke__">tokenizers</span>()
-        .<span class="hljs-title function_ invoke__">register</span>(<span class="hljs-string">&quot;ngram3&quot;</span>, NgramTokenizer::<span class="hljs-title function_ invoke__">new</span>(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>, <span class="hljs-literal">false</span>));</pre></div></div>
+        .<span class="hljs-title function_ invoke__">register</span>(<span class="hljs-string">&quot;ngram3&quot;</span>, NgramTokenizer::<span class="hljs-title function_ invoke__">new</span>(<span class="hljs-number">3</span>, <span class="hljs-number">3</span>, <span class="hljs-literal">false</span>).<span class="hljs-title function_ invoke__">unwrap</span>());</pre></div></div>
             
         </li>
         
@@ -280,7 +280,7 @@ memory arena for the indexer can increase its throughput.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
     title =&gt; <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>,
     body =&gt; <span class="hljs-string">&quot;He was an old man who fished alone in a skiff in the Gulf Stream and \
@@ -345,8 +345,8 @@ in both title and body.</p>
     <span class="hljs-keyword">let</span> <span class="hljs-variable">top_docs</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">10</span>))?;
 
     <span class="hljs-title function_ invoke__">for</span> (_, doc_address) <span class="hljs-keyword">in</span> top_docs {
-        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span>: TantivyDocument = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, retrieved_doc.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema));
     }
 
     <span class="hljs-title function_ invoke__">Ok</span>(())

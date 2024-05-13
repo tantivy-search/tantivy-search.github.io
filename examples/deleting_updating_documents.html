@@ -159,7 +159,7 @@ its new version.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::TermQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexReader};</pre></div></div>
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexReader, IndexWriter};</pre></div></div>
             
         </li>
         
@@ -179,7 +179,7 @@ It will be helpful to check our work.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">fn</span> <span class="hljs-title function_">extract_doc_given_isbn</span>(
     reader: &amp;IndexReader,
     isbn_term: &amp;Term,
-) <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;<span class="hljs-type">Option</span>&lt;Document&gt;&gt; {
+) <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;<span class="hljs-type">Option</span>&lt;TantivyDocument&gt;&gt; {
     <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();</pre></div></div>
             
         </li>
@@ -274,7 +274,7 @@ we also mark the field as stored.</p>
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema.<span class="hljs-title function_ invoke__">clone</span>());
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
             
         </li>
         
@@ -289,7 +289,7 @@ we also mark the field as stored.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">old_man_doc</span> = Document::<span class="hljs-title function_ invoke__">default</span>();
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">old_man_doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">default</span>();
     old_man_doc.<span class="hljs-title function_ invoke__">add_text</span>(title, <span class="hljs-string">&quot;The Old Man and the Sea&quot;</span>);
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
         isbn =&gt; <span class="hljs-string">&quot;978-0099908401&quot;</span>,
@@ -323,7 +323,7 @@ we also mark the field as stored.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">frankenstein_doc_misspelled</span> = <span class="hljs-title function_ invoke__">extract_doc_given_isbn</span>(&amp;reader, &amp;frankenstein_isbn)?.<span class="hljs-title function_ invoke__">unwrap</span>();
     <span class="hljs-built_in">assert_eq!</span>(
-        schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;frankenstein_doc_misspelled),
+        frankenstein_doc_misspelled.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema),
         <span class="hljs-string">r#&quot;{&quot;isbn&quot;:[&quot;978-9176370711&quot;],&quot;title&quot;:[&quot;Frankentein&quot;]}&quot;#</span>,
     );</pre></div></div>
             
@@ -420,7 +420,7 @@ Everything happened as if the document was updated.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">frankenstein_new_doc</span> = <span class="hljs-title function_ invoke__">extract_doc_given_isbn</span>(&amp;reader, &amp;frankenstein_isbn)?.<span class="hljs-title function_ invoke__">unwrap</span>();
     <span class="hljs-built_in">assert_eq!</span>(
-        schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;frankenstein_new_doc),
+        frankenstein_new_doc.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema),
         <span class="hljs-string">r#&quot;{&quot;isbn&quot;:[&quot;978-9176370711&quot;],&quot;title&quot;:[&quot;Frankenstein&quot;]}&quot;#</span>,
     );
 

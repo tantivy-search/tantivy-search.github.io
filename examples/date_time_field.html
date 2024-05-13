@@ -142,8 +142,8 @@
             <div class="content"><div class='highlight'><pre>
 <span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
-<span class="hljs-keyword">use</span> tantivy::schema::{DateOptions, Schema, Value, INDEXED, STORED, STRING};
-<span class="hljs-keyword">use</span> tantivy::Index;
+<span class="hljs-keyword">use</span> tantivy::schema::{DateOptions, Document, OwnedValue, Schema, INDEXED, STORED, STRING};
+<span class="hljs-keyword">use</span> tantivy::{Index, IndexWriter, TantivyDocument};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -164,7 +164,7 @@
     <span class="hljs-keyword">let</span> <span class="hljs-variable">opts</span> = DateOptions::<span class="hljs-title function_ invoke__">from</span>(INDEXED)
         .<span class="hljs-title function_ invoke__">set_stored</span>()
         .<span class="hljs-title function_ invoke__">set_fast</span>()
-        .<span class="hljs-title function_ invoke__">set_precision</span>(tantivy::DateTimePrecision::Seconds);</pre></div></div>
+        .<span class="hljs-title function_ invoke__">set_precision</span>(tantivy::schema::DateTimePrecision::Seconds);</pre></div></div>
             
         </li>
         
@@ -198,7 +198,7 @@
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema.<span class="hljs-title function_ invoke__">clone</span>());
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
             
         </li>
         
@@ -213,14 +213,16 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(
+        &amp;schema,
         <span class="hljs-string">r#&quot;{
         &quot;occurred_at&quot;: &quot;2022-06-22T12:53:50.53Z&quot;,
         &quot;event&quot;: &quot;pull-request&quot;
     }&quot;#</span>,
     )?;
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc)?;
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(
+        &amp;schema,
         <span class="hljs-string">r#&quot;{
         &quot;occurred_at&quot;: &quot;2022-06-22T13:00:00.22Z&quot;,
         &quot;event&quot;: &quot;comment&quot;
@@ -285,13 +287,13 @@
         <span class="hljs-keyword">let</span> <span class="hljs-variable">count_docs</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;*query, &amp;TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">4</span>))?;
         <span class="hljs-built_in">assert_eq!</span>(count_docs.<span class="hljs-title function_ invoke__">len</span>(), <span class="hljs-number">1</span>);
         <span class="hljs-title function_ invoke__">for</span> (_score, doc_address) <span class="hljs-keyword">in</span> count_docs {
-            <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+            <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.doc::&lt;TantivyDocument&gt;(doc_address)?;
             <span class="hljs-built_in">assert!</span>(matches!(
                 retrieved_doc.<span class="hljs-title function_ invoke__">get_first</span>(occurred_at),
-                <span class="hljs-title function_ invoke__">Some</span>(Value::<span class="hljs-title function_ invoke__">Date</span>(_))
+                <span class="hljs-title function_ invoke__">Some</span>(OwnedValue::<span class="hljs-title function_ invoke__">Date</span>(_))
             ));
             <span class="hljs-built_in">assert_eq!</span>(
-                schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc),
+                retrieved_doc.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema),
                 <span class="hljs-string">r#&quot;{&quot;event&quot;:[&quot;comment&quot;],&quot;occurred_at&quot;:[&quot;2022-06-22T13:00:00.22Z&quot;]}&quot;#</span>
             );
         }

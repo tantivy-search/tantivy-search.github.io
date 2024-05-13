@@ -173,9 +173,10 @@ such as the <code>CountCollector</code> for more examples.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::{Collector, SegmentCollector};
+<span class="hljs-keyword">use</span> tantivy::index::SegmentReader;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::{Schema, FAST, INDEXED, TEXT};
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, Score, SegmentReader};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter, Score};
 
 <span class="hljs-meta">#[derive(Default)]</span>
 <span class="hljs-keyword">struct</span> <span class="hljs-title class_">Stats</span> {
@@ -389,7 +390,7 @@ this example.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(
         product_name =&gt; <span class="hljs-string">&quot;Super Broom 2000&quot;</span>,
         product_description =&gt; <span class="hljs-string">&quot;While it is ok for short distance travel, this broom \

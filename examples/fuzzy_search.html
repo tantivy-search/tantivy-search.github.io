@@ -165,7 +165,7 @@ tantivy.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::{Count, TopDocs};
 <span class="hljs-keyword">use</span> tantivy::query::FuzzyTermQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, ReloadPolicy};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter, ReloadPolicy};
 <span class="hljs-keyword">use</span> tempfile::TempDir;
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
@@ -282,7 +282,7 @@ throughput, but 50 MB is already plenty.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
             
         </li>
         
@@ -387,7 +387,7 @@ will reload the index automatically after each commit.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index
         .<span class="hljs-title function_ invoke__">reader_builder</span>()
-        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommit)
+        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommitWithDelay)
         .<span class="hljs-title function_ invoke__">try_into</span>()?;</pre></div></div>
             
         </li>
@@ -434,8 +434,7 @@ and release it right after your query is finished.</p>
             .<span class="hljs-title function_ invoke__">unwrap</span>();
         <span class="hljs-built_in">assert_eq!</span>(count, <span class="hljs-number">3</span>);
         <span class="hljs-built_in">assert_eq!</span>(top_docs.<span class="hljs-title function_ invoke__">len</span>(), <span class="hljs-number">3</span>);
-        <span class="hljs-title function_ invoke__">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {
-            <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;</pre></div></div>
+        <span class="hljs-title function_ invoke__">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {</pre></div></div>
             
         </li>
         
@@ -451,7 +450,8 @@ There’s an issue open for that: <a href="https://github.com/quickwit-oss/tanti
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;score {score:?} doc {}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));</pre></div></div>
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span>: TantivyDocument = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+            <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;score {score:?} doc {}&quot;</span>, retrieved_doc.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema));</pre></div></div>
             
         </li>
         

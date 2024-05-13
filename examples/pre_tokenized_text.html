@@ -152,7 +152,7 @@ tokens by some external tool.</p>
 <span class="hljs-keyword">use</span> tantivy::query::TermQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::tokenizer::{PreTokenizedString, SimpleTokenizer, Token, TokenStream, Tokenizer};
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, ReloadPolicy};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter, ReloadPolicy};
 <span class="hljs-keyword">use</span> tempfile::TempDir;
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">pre_tokenize_text</span>(text: &amp;<span class="hljs-type">str</span>) <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Vec</span>&lt;Token&gt; {
@@ -177,7 +177,7 @@ tokens by some external tool.</p>
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_dir</span>(&amp;index_path, schema.<span class="hljs-title function_ invoke__">clone</span>())?;
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
             
         </li>
         
@@ -282,7 +282,7 @@ We create <code>PreTokenizedString</code> which contains original text and vecto
         }]
     }&quot;#</span>;
 
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">short_man_doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(short_man_json)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">short_man_doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(&amp;schema, short_man_json)?;
 
     index_writer.<span class="hljs-title function_ invoke__">add_document</span>(short_man_doc)?;</pre></div></div>
             
@@ -317,7 +317,7 @@ We create <code>PreTokenizedString</code> which contains original text and vecto
             <div class="content"><div class='highlight'><pre>
     <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index
         .<span class="hljs-title function_ invoke__">reader_builder</span>()
-        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommit)
+        .<span class="hljs-title function_ invoke__">reload_policy</span>(ReloadPolicy::OnCommitWithDelay)
         .<span class="hljs-title function_ invoke__">try_into</span>()?;
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">searcher</span> = reader.<span class="hljs-title function_ invoke__">searcher</span>();</pre></div></div>
@@ -362,8 +362,8 @@ in the document store</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-title function_ invoke__">for</span> (_score, doc_address) <span class="hljs-keyword">in</span> top_docs {
-        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Document: {}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span>: TantivyDocument = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, retrieved_doc.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema));
     }</pre></div></div>
             
         </li>

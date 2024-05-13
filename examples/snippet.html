@@ -171,7 +171,8 @@ The keyword searched by the user are highlighted with a <code>&lt;b&gt;</code> t
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::TopDocs;
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, Snippet, SnippetGenerator};
+<span class="hljs-keyword">use</span> tantivy::snippet::{Snippet, SnippetGenerator};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter};
 <span class="hljs-keyword">use</span> tempfile::TempDir;
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
@@ -225,7 +226,7 @@ sake of this example</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_dir</span>(&amp;index_path, schema)?;
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;</pre></div></div>
             
         </li>
         
@@ -277,13 +278,10 @@ sake of this example</p>
     <span class="hljs-keyword">let</span> <span class="hljs-variable">snippet_generator</span> = SnippetGenerator::<span class="hljs-title function_ invoke__">create</span>(&amp;searcher, &amp;*query, body)?;
 
     <span class="hljs-title function_ invoke__">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {
-        <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = searcher.doc::&lt;TantivyDocument&gt;(doc_address)?;
         <span class="hljs-keyword">let</span> <span class="hljs-variable">snippet</span> = snippet_generator.<span class="hljs-title function_ invoke__">snippet_from_doc</span>(&amp;doc);
         <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;Document score {score}:&quot;</span>);
-        <span class="hljs-built_in">println!</span>(
-            <span class="hljs-string">&quot;title: {}&quot;</span>,
-            doc.<span class="hljs-title function_ invoke__">get_first</span>(title).<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">as_text</span>().<span class="hljs-title function_ invoke__">unwrap</span>()
-        );
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;title: {}&quot;</span>, doc.<span class="hljs-title function_ invoke__">get_first</span>(title).<span class="hljs-title function_ invoke__">unwrap</span>().<span class="hljs-title function_ invoke__">as_str</span>().<span class="hljs-title function_ invoke__">unwrap</span>());
         <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;snippet: {}&quot;</span>, snippet.<span class="hljs-title function_ invoke__">to_html</span>());
         <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;custom highlighting: {}&quot;</span>, <span class="hljs-title function_ invoke__">highlight</span>(snippet));
     }

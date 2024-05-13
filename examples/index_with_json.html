@@ -207,7 +207,7 @@ Check out the basic example if this is confusing to you.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">_mice_and_men_doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(mice_and_men_doc_json)?;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">let</span> <span class="hljs-variable">_mice_and_men_doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(&amp;schema, mice_and_men_doc_json)?;</pre></div></div>
             
         </li>
         
@@ -228,7 +228,7 @@ The following document has two titles.</p>
        &quot;title&quot;: [&quot;Frankenstein&quot;, &quot;The Modern Prometheus&quot;],
        &quot;year&quot;: 1818
     }&quot;#</span>;
-    <span class="hljs-keyword">let</span> <span class="hljs-variable">_frankenstein_doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(frankenstein_json)?;</pre></div></div>
+    <span class="hljs-keyword">let</span> <span class="hljs-variable">_frankenstein_doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(&amp;schema, frankenstein_json)?;</pre></div></div>
             
         </li>
         

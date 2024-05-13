@@ -10,7 +10,7 @@ npm install docco
 git clone git@github.com:tantivy-search/tantivy.git --depth=1
 #git clone /home/paul/git/tantivy
 cd tantivy/examples || exit
-docco *.rs -o ../../examples/
+docco *.rs -o ../../examples/ 
 cd - || exit
 #cd ${DIR}
 #rm -fr ../examples

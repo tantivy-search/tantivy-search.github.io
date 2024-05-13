@@ -143,7 +143,7 @@ You can use RangeQuery to get a Count of all occurrences in a given range.</p>
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">use</span> tantivy::collector::Count;
 <span class="hljs-keyword">use</span> tantivy::query::RangeQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::{Schema, INDEXED};
-<span class="hljs-keyword">use</span> tantivy::{doc, Index, <span class="hljs-type">Result</span>};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter, <span class="hljs-type">Result</span>};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> <span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -180,7 +180,7 @@ You can use RangeQuery to get a Count of all occurrences in a given range.</p>
     <span class="hljs-keyword">let</span> <span class="hljs-variable">index</span> = Index::<span class="hljs-title function_ invoke__">create_in_ram</span>(schema);
     <span class="hljs-keyword">let</span> <span class="hljs-variable">reader</span> = index.<span class="hljs-title function_ invoke__">reader</span>()?;
     {
-        <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">6_000_000</span>)?;
+        <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer_with_num_threads</span>(<span class="hljs-number">1</span>, <span class="hljs-number">6_000_000</span>)?;
         <span class="hljs-keyword">for</span> <span class="hljs-variable">year</span> <span class="hljs-keyword">in</span> <span class="hljs-number">1950u64</span>..<span class="hljs-number">2019u64</span> {
             index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc!(year_field =&gt; year))?;
         }

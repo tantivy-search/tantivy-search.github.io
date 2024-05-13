@@ -177,7 +177,7 @@ with tantivy</p>
 <span class="hljs-keyword">use</span> tantivy::query::QueryParser;
 <span class="hljs-keyword">use</span> tantivy::schema::*;
 <span class="hljs-keyword">use</span> tantivy::tokenizer::*;
-<span class="hljs-keyword">use</span> tantivy::{doc, Index};
+<span class="hljs-keyword">use</span> tantivy::{doc, Index, IndexWriter};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -283,7 +283,7 @@ then removes all instances of <code>the</code> and <code>and</code> from the cor
 
     index.<span class="hljs-title function_ invoke__">tokenizers</span>().<span class="hljs-title function_ invoke__">register</span>(<span class="hljs-string">&quot;stoppy&quot;</span>, tokenizer);
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">title</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;title&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
     <span class="hljs-keyword">let</span> <span class="hljs-variable">body</span> = schema.<span class="hljs-title function_ invoke__">get_field</span>(<span class="hljs-string">&quot;body&quot;</span>).<span class="hljs-title function_ invoke__">unwrap</span>();
@@ -340,9 +340,9 @@ The following will be equivalent to <code>title:frankenstein</code></p>
     <span class="hljs-keyword">let</span> <span class="hljs-variable">top_docs</span> = searcher.<span class="hljs-title function_ invoke__">search</span>(&amp;query, &amp;TopDocs::<span class="hljs-title function_ invoke__">with_limit</span>(<span class="hljs-number">10</span>))?;
 
     <span class="hljs-title function_ invoke__">for</span> (score, doc_address) <span class="hljs-keyword">in</span> top_docs {
-        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span> = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">retrieved_doc</span>: TantivyDocument = searcher.<span class="hljs-title function_ invoke__">doc</span>(doc_address)?;
         <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;\n==\nDocument score {score}:&quot;</span>);
-        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, schema.<span class="hljs-title function_ invoke__">to_json</span>(&amp;retrieved_doc));
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">&quot;{}&quot;</span>, retrieved_doc.<span class="hljs-title function_ invoke__">to_json</span>(&amp;schema));
     }
 
     <span class="hljs-title function_ invoke__">Ok</span>(())

@@ -164,7 +164,7 @@ We will use nested aggregations with buckets and metrics:</p>
 <span class="hljs-keyword">use</span> tantivy::aggregation::AggregationCollector;
 <span class="hljs-keyword">use</span> tantivy::query::AllQuery;
 <span class="hljs-keyword">use</span> tantivy::schema::{<span class="hljs-keyword">self</span>, IndexRecordOption, Schema, TextFieldIndexing, FAST};
-<span class="hljs-keyword">use</span> tantivy::Index;
+<span class="hljs-keyword">use</span> tantivy::{Index, IndexWriter, TantivyDocument};
 
 <span class="hljs-keyword">fn</span> <span class="hljs-title function_">main</span>() <span class="hljs-punctuation">-&gt;</span> tantivy::<span class="hljs-type">Result</span>&lt;()&gt; {</pre></div></div>
             
@@ -319,10 +319,10 @@ always be raw tokenized independent from the regular tokenizing)</p>
 
     <span class="hljs-keyword">let</span> <span class="hljs-variable">stream</span> = Deserializer::<span class="hljs-title function_ invoke__">from_str</span>(data).into_iter::&lt;Value&gt;();
 
-    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span> = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">index_writer</span>: IndexWriter = index.<span class="hljs-title function_ invoke__">writer</span>(<span class="hljs-number">50_000_000</span>)?;
     <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut </span><span class="hljs-variable">num_indexed</span> = <span class="hljs-number">0</span>;
     <span class="hljs-keyword">for</span> <span class="hljs-variable">value</span> <span class="hljs-keyword">in</span> stream {
-        <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = schema.<span class="hljs-title function_ invoke__">parse_document</span>(&amp;serde_json::<span class="hljs-title function_ invoke__">to_string</span>(&amp;value.<span class="hljs-title function_ invoke__">unwrap</span>())?)?;
+        <span class="hljs-keyword">let</span> <span class="hljs-variable">doc</span> = TantivyDocument::<span class="hljs-title function_ invoke__">parse_json</span>(&amp;schema, &amp;serde_json::<span class="hljs-title function_ invoke__">to_string</span>(&amp;value.<span class="hljs-title function_ invoke__">unwrap</span>())?)?;
         index_writer.<span class="hljs-title function_ invoke__">add_document</span>(doc)?;
         num_indexed += <span class="hljs-number">1</span>;
         <span class="hljs-keyword">if</span> num_indexed &gt; <span class="hljs-number">4</span> {</pre></div></div>
